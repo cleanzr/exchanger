@@ -1,0 +1,66 @@
+Package: exer
+Type: Package
+Title: Bayesian Entity Resolution with Exchangeable Random Partition Priors
+Version: 0.2.0
+Date: 2020-12-17
+Authors@R: c(
+    person(given = "Neil", 
+           family = "Marchant", 
+           email = "ngmarchant@gmail.com", 
+           role = c("aut", "cre")),
+    person(given = "Rebecca",
+           family = "Steorts", 
+           email = "beka@stat.duke.edu",
+           role = c("aut", "ths")),
+    person(given = "Benjamin",
+           family = "Rubinstein", 
+           email = "brubinstein@unimelb.edu.au", 
+           role = c("aut", "ths")))
+Maintainer: Neil Marchant <ngmarchant@gmail.com>
+Description: This package implements a Bayesian model for entity resolution 
+    as presented in Marchant et al. (2020). The model assumes records are 
+    generated from a latent population of entities via a distortion process. 
+    Entity resolution is performed by inferring the latent linkage structure 
+    using a Markov chain Monte Carlo algorithm. 
+License: GPL (>= 2)
+Depends: R (>= 3.0.2)
+Imports: Rcpp (>= 0.12.12),
+    coda (>= 0.17-1),
+    future.apply (>= 1.0.0),
+    comparator (>= 0.1.1),
+    methods
+LinkingTo: Rcpp, 
+    RcppArmadillo, 
+    RcppProgress, 
+    BH (>= 1.69.0)
+LazyData: true
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
+Encoding: UTF-8
+BugReports: https://github.com/cleanzr/exer/issues
+URL: https://github.com/cleanzr/exer
+Suggests: knitr,
+    rmarkdown,
+    clevr (>= 0.1.1)
+VignetteBuilder: knitr
+Collate: 
+    'RV.R'
+    'GammaRV.R'
+    'DirichletProcess.R'
+    'utils.R'
+    'BetaRV.R'
+    'Attribute.R'
+    'AttributeIndex.R'
+    'DirichletRV.R'
+    'RP.R'
+    'EXERModel.R'
+    'GeneralizedCouponRP.R'
+    'PitmanYorRP.R'
+    'RcppExports.R'
+    'ShiftedNegBinomRV.R'
+    'UniformRP.R'
+    'analysis.R'
+    'data.R'
+    'exer-package.R'
+    'run_inference.R'
+    'transform_dist_fn.R'

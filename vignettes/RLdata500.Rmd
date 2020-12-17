@@ -1,0 +1,102 @@
+---
+title: "Introduction to exer"
+author: "Neil Marchant"
+date: "17 December 2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to exer}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width=7, 
+  fig.height=5
+)
+set.seed(319158)
+```
+
+We demonstrate how to perform entity resolution using the `RLdata500` test 
+data set included with the package. `RLdata500` contains 500 synthetic 
+personal records, 50 of which are duplicates with randomly-generated errors.
+In the code block, below we load the package and examine the first few rows 
+of `RLdata500`. 
+```{r, eval=TRUE, message=FALSE, warning=FALSE}
+library(exer)
+library(comparator)
+library(clevr)
+head(RLdata500)
+```
+
+Next we specify the model parameters for the entity attributes. 
+For simplicity, we use a uniform prior for the distortion probability 
+associated with each attribute.
+```{r, eval=TRUE, message=FALSE, warning=FALSE}
+unif_prior <- BetaRV(1, 1)
+```
+
+We model the distortion for the name attributes (`fname_c1` and `lname_c1`) 
+using Levenshtein (edit) distance 
+The `transform_dist_fn` applies a threshold at a distance of 3, so that any 
+pair of names `y`, `x` with an edit distance strictly greater than 3 are 
+assumed to be "infinitely" apart. 
+This improves computational efficiency, as the inference algorithm exploits 
+the fact that `x` can never be a distortion of `y` if their distance is 
+strictly greater than 3.
+For the date attributes (`by`, `bm` and `bd`) we assume a constant distance 
+function, which means all values in the domain are equally likely a priori 
+as a distorted alternative. 
+The `CategoricalAttribute` constructor provides a shortcut for an attribute 
+with a constant distance function.
+```{r, eval=TRUE, message=FALSE}
+attr_params <- list(
+  "fname_c1" = Attribute(transform_dist_fn(Levenshtein(), threshold = 3.0),
+                         distort_prob_prior = unif_prior),
+  "lname_c1" = Attribute(transform_dist_fn(Levenshtein(), threshold = 3.0),
+                         distort_prob_prior = unif_prior),
+  "by" = CategoricalAttribute(distort_prob_prior = unif_prior),
+  "bm" = CategoricalAttribute(distort_prob_prior = unif_prior),
+  "bd" = CategoricalAttribute(distort_prob_prior = unif_prior)
+)
+```
+
+Finally we specify the prior over the linkage structure (clustering). Here we 
+use a Pitman-Yor random partition for the prior, with hyperpriors on the 
+concentration and discount parameters.
+```{r, eval=TRUE, message=FALSE}
+clust_prior <- PitmanYorRP(alpha = GammaRV(1, 1), d = BetaRV(1, 1))
+```
+
+All that remains is to initialize the model and run inference. 
+For demonstration purposes, we only generate 100 posterior samples of the 
+linkage structure.
+```{r, eval=TRUE, message=FALSE}
+model <- initialize_exer(RLdata500, attr_params, clust_prior)
+system.time(
+result <- run_inference(model, n_samples=100, thin_interval=10, burnin_interval=1000)
+)
+```
+
+We can obtain a point estimate of the most likely linkage structure using the 
+_shared most probable maximal matching sets method_.
+```{r, eval=TRUE}
+pred_clusters <- smp_clusters(result)
+```
+
+Then we evaluate with respect to the true matching.
+```{r, eval=TRUE}
+n_records <- nrow(RLdata500)
+true_pairs <- membership_to_pairs(identity.RLdata500)
+pred_pairs <- clusters_to_pairs(pred_clusters)
+measures <- eval_report_pairs(true_pairs, pred_pairs, num_pairs=n_records*(n_records-1)/2)
+print(measures)
+```
+
+Inspect trace plots
+```{r}
+plot(result@history$n_linked_ents, type = "l", xlab="Iteration", ylab="Num. linked entities")
+matplot(result@history$n_distorted_per_attr / n_records * 100, type="l", xlab="Iteration", ylab="% distorted")
+```
