@@ -1,0 +1,11 @@
+inst/lib
+.Rproj.user
+.vscode
+src/*.o
+src/*.so
+src/*.dll
+src/symbols.rds
+.Rhistory
+.RData
+.DS_Store
+inst/doc
