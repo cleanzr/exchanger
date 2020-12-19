@@ -29,9 +29,9 @@
 #' 
 #' The following data sources were used (all relate to Germany):
 #' 
-#' * <http://blog.beliebte-vornamen.de/2009/02/prozentuale-anteile-2008/>, a 
+#' * <https://blog.beliebte-vornamen.de/2009/02/prozentuale-anteile-2008/>, a 
 #'   list of the frequencies of the 20 most popular female names in 2008.
-#' * <http://www.beliebte-vornamen.de/760-alle_jahre.htm>, a list of the 
+#' * <https://www.beliebte-vornamen.de/760-alle_jahre.htm>, a list of the 
 #'   100 most popular first names since 1890. The frequencies found in
 #'   the source above were extrapolated to fit this list.
 #' * <http://www.ahnenforschung-in-stormarn.de/geneal/nachnamen_100.htm>, 
