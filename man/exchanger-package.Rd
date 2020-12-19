@@ -2,8 +2,8 @@
 % Please edit documentation in R/exchanger-package.R
 \docType{package}
 \name{exchanger-package}
-\alias{exchanger}
 \alias{exchanger-package}
+\alias{_PACKAGE}
 \title{exchanger: Bayesian Entity Resolution with Exchangeable Random Partition Priors}
 \description{
 Implements a Bayesian model for entity resolution as described 

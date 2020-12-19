@@ -1,3 +1,4 @@
+#' @aliases exchanger-package
 #' @keywords internal
 "_PACKAGE"
 
