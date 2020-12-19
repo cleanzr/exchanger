@@ -2,6 +2,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <RcppArmadillo.h>
+#include <algorithm>
 
 /**
  * Convert a C++ representation of the model state to an `ExchangERModel` S4 object 
@@ -98,9 +99,8 @@ State readS4State(Rcpp::S4 init_state)
     std::move(clust_params_) );
 }
 
-Rcpp::CharacterVector sequence(ptrdiff_t start, ptrdiff_t end) {
-  ptrdiff_t size = end - start + 1;
-  assert (size >= 0);
+Rcpp::CharacterVector sequence(int start, int end) {
+  int size = std::max(end - start + 1, 0);
   Rcpp::CharacterVector out(size);
   
   for (auto &x : out) {
