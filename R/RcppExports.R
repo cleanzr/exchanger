@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 .mp_clusters <- function(samples) {
-    .Call('_exer_mp_clusters', PACKAGE = 'exer', samples)
+    .Call('_exchanger_mp_clusters', PACKAGE = 'exchanger', samples)
 }
 
 .smp_clusters <- function(mp_clusters) {
-    .Call('_exer_smp_clusters', PACKAGE = 'exer', mp_clusters)
+    .Call('_exchanger_smp_clusters', PACKAGE = 'exchanger', mp_clusters)
 }
 
 .sample <- function(init_state, n_samples, thin_interval = 1L, burnin_interval = 0L) {
-    .Call('_exer_sample', PACKAGE = 'exer', init_state, n_samples, thin_interval, burnin_interval)
+    .Call('_exchanger_sample', PACKAGE = 'exchanger', init_state, n_samples, thin_interval, burnin_interval)
 }
 

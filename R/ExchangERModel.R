@@ -1,7 +1,7 @@
 #' @include RP.R AttributeIndex.R Attribute.R
 NULL
 
-.check_EXERModel <- function(object) {
+.check_ExchangERModel <- function(object) {
   errors <- character()
   # Type checks
   if (!all(sapply(object@attr_params, function(x) inherits(x, "Attribute")))) {
@@ -147,11 +147,11 @@ NULL
 #'   over the clustering of records into entities (a.k.a. linkage structure).
 #' 
 #' @seealso 
-#' The [`initialize_exer`] function should be used to initialize an ER model 
+#' The [`exchanger`] function should be used to initialize an ER model 
 #' from data.
 #' 
 #' @export
-EXERModel <- setClass("EXERModel", 
+ExchangERModel <- setClass("ExchangERModel", 
                       slots = c(
                         iteration = "integer",
                         attr_params = "list",
@@ -167,12 +167,12 @@ EXERModel <- setClass("EXERModel",
                         attr_indices = "list",
                         clust_prior = "RP"
                       ),
-                      validity = .check_EXERModel)
+                      validity = .check_ExchangERModel)
 
-#' Initialize an exer model
+#' Initialize an exchanger model
 #' 
 #' @description
-#' Initializes an [`EXERModel-class`] given observed data and model 
+#' Initializes an [`ExchangERModel-class`] given observed data and model 
 #' hyperparameters.
 #' 
 #' @param data A data frame or matrix of observed records. Column names are 
@@ -188,7 +188,7 @@ EXERModel <- setClass("EXERModel",
 #'   from a single file/source.
 #' @param rec_id_colname Column name in `data` that contains unique record 
 #'   identifiers. If NULL, use row names to identify records.
-#' @return An [`EXERModel-class`] object. This can be used as the starting 
+#' @return An [`ExchangERModel-class`] object. This can be used as the starting 
 #'   point for inference using [`run_inference`] function.
 #' 
 #' @examples 
@@ -203,10 +203,10 @@ EXERModel <- setClass("EXERModel",
 #'   "by" = CategoricalAttribute(distortionPrior),
 #'   "bm" = CategoricalAttribute(distortionPrior)
 #' )
-#' model <- initialize_exer(RLdata500, attr_params, clust_prior)
+#' model <- exchanger(RLdata500, attr_params, clust_prior)
 #' 
 #' @export
-initialize_exer <- function(data, attr_params, clust_prior, 
+exchanger <- function(data, attr_params, clust_prior, 
                             file_id_colname=NULL, rec_id_colname=NULL) {
   # Input validation
   data_colnames <- colnames(data)
@@ -310,7 +310,7 @@ initialize_exer <- function(data, attr_params, clust_prior,
   colnames(rec_distortions) <- rec_ids_char
   names(links) <- rec_ids_char
   
-  EXERModel(iteration=0L, attr_params=attr_params, file_ids=file_ids, 
+  ExchangERModel(iteration=0L, attr_params=attr_params, file_ids=file_ids, 
             rec_ids=rec_ids, rec_attrs=rec_attrs, 
             rec_distortions=rec_distortions, 
             ent_attrs=ent_attrs, ent_ids=ent_ids, 

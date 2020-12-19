@@ -1,6 +1,6 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# exer: Bayesian Entity Resolution with Exchangeable Random Partition Priors
+# exchanger: Bayesian Entity Resolution with Exchangeable Random Partition Priors
 
 ## Overview
 
@@ -27,12 +27,12 @@ structure* using a Markov chain Monte Carlo algorithm.
 
 ## Installation
 
-`exer` is not currently available on CRAN. The latest development
+`exchanger` is not currently available on CRAN. The latest development
 version can be installed from source using `devtools` as follows:
 
 ``` r
 library(devtools)
-install_github("cleanzr/exer")
+install_github("cleanzr/exchanger")
 ```
 
 Note that your system must be configured for R package development. See
@@ -51,7 +51,7 @@ randomly-generated errors. In the code block, below we load the package
 and examine the first few rows of `RLdata500`.
 
 ``` r
-library(exer)
+library(exchanger)
 library(comparator)     # provides string comparison functions
 library(clevr)          # provides functions for supervised evaluation
 head(RLdata500)
@@ -109,7 +109,7 @@ demonstration purposes, we only generate 100 posterior samples of the
 linkage structure.
 
 ``` r
-model <- initialize_exer(RLdata500, attr_params, clust_prior)
+model <- exchanger(RLdata500, attr_params, clust_prior)
 result <- run_inference(model, n_samples=100, thin_interval=10, burnin_interval=1000)
 ```
 

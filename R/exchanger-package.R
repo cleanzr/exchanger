@@ -4,5 +4,5 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 #' @importFrom methods new slot slot<- slotNames
-#' @useDynLib exer
+#' @useDynLib exchanger
 NULL

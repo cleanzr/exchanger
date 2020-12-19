@@ -96,7 +96,7 @@ setClass("Attribute", slots=c(dist_fn="function",
 #' 
 #' @seealso 
 #' A named list of `Attribute` objects is required when initializing the model 
-#' (see [`initialize_exer`]).
+#' (see [`exchanger`]).
 #' 
 #' @export
 Attribute <- function(dist_fn, distort_prob_prior, 

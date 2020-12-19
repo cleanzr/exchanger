@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // mp_clusters
 Rcpp::List mp_clusters(const Rcpp::IntegerMatrix& samples);
-RcppExport SEXP _exer_mp_clusters(SEXP samplesSEXP) {
+RcppExport SEXP _exchanger_mp_clusters(SEXP samplesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // smp_clusters
 Rcpp::List smp_clusters(const Rcpp::List& mp_clusters);
-RcppExport SEXP _exer_smp_clusters(SEXP mp_clustersSEXP) {
+RcppExport SEXP _exchanger_smp_clusters(SEXP mp_clustersSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // sample
 Rcpp::S4 sample(Rcpp::S4 init_state, int n_samples, int thin_interval, int burnin_interval);
-RcppExport SEXP _exer_sample(SEXP init_stateSEXP, SEXP n_samplesSEXP, SEXP thin_intervalSEXP, SEXP burnin_intervalSEXP) {
+RcppExport SEXP _exchanger_sample(SEXP init_stateSEXP, SEXP n_samplesSEXP, SEXP thin_intervalSEXP, SEXP burnin_intervalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -44,13 +44,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_exer_mp_clusters", (DL_FUNC) &_exer_mp_clusters, 1},
-    {"_exer_smp_clusters", (DL_FUNC) &_exer_smp_clusters, 1},
-    {"_exer_sample", (DL_FUNC) &_exer_sample, 4},
+    {"_exchanger_mp_clusters", (DL_FUNC) &_exchanger_mp_clusters, 1},
+    {"_exchanger_smp_clusters", (DL_FUNC) &_exchanger_smp_clusters, 1},
+    {"_exchanger_sample", (DL_FUNC) &_exchanger_sample, 4},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_exer(DllInfo *dll) {
+RcppExport void R_init_exchanger(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

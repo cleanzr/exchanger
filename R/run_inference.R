@@ -1,27 +1,27 @@
-#' @include EXERModel.R utils.R
+#' @include ExchangERModel.R utils.R
 NULL
 
 #' Class for MCMC output
 #' 
 #' @slot history a list containing parameters of interest and summary 
 #'   statistics along the Markov chain.
-#' @slot state an [`EXERModel-class`] object which represents the state 
+#' @slot state an [`ExchangERModel-class`] object which represents the state 
 #'   of the model at the end of the Markov chain.
-setClass("MCMCResult", 
+setClass("ExchangERResult", 
          slots = c(history = "list",
-                   state = "EXERModel"))
+                   state = "ExchangERModel"))
 
-#' Function to concatenate two MCMCResult objects
+#' Function to concatenate two ExchangERResult objects
 #' 
-#' @param resultA,resultB [`MCMCResult-class`] objects. `resultB` must occur 
+#' @param resultA,resultB [`ExchangERResult-class`] objects. `resultB` must occur 
 #'   after `resultA` along the Markov chain. Additionally, the results must use 
 #'   the same `thin_interval`.
-#' @return an [`MCMCResult-class`] object
+#' @return an [`ExchangERResult-class`] object
 #' 
 #' @importFrom coda mcmc
 #' @noRd
 combine_results <- function(resultA, resultB) {
-  # Assume that both inputs are instances of type 'MCMCResult' and that 
+  # Assume that both inputs are instances of type 'ExchangERResult' and that 
   # they refer to the same data set & model
   
   mcparA <- attr(resultA@history, 'mcpar')
@@ -55,7 +55,7 @@ combine_results <- function(resultA, resultB) {
     hist_combined[[varname]] <- mcmc(history, start=mcparA[1], thin = mcparA[3])
   }
   
-  return(new("MCMCResult", history=hist_combined, state=resultB@state))
+  return(new("ExchangERResult", history=hist_combined, state=resultB@state))
 }
 
 #' Run inference for a model
@@ -65,8 +65,8 @@ combine_results <- function(resultA, resultB) {
 #' Carlo (MCMC).
 #' 
 #' @param x an \R object representing a model or a model with sampling 
-#'   history. Currently, there are methods defined for [`EXERModel-class`] 
-#'   objects and [`MCMCResult-class`] objects. Passing a model begins 
+#'   history. Currently, there are methods defined for [`ExchangERModel-class`] 
+#'   objects and [`ExchangERResult-class`] objects. Passing a model begins 
 #'   sampling from scratch, in which case a burn-in period is recommended. 
 #'   Passing a model with sampling history will resume inference, adding 
 #'   samples to the existing history.
@@ -80,7 +80,7 @@ combine_results <- function(resultA, resultB) {
 #'   applied.
 #' @param ... further arguments passed to or from other methods. 
 #' @return 
-#' Returns an [`MCMCResult-class`] object with the following slots:
+#' Returns an [`ExchangERResult-class`] object with the following slots:
 #' \item{history}{a list containing the sampling history for 
 #'   parameters/summary statistics along the Markov chain.}
 #' \item{state}{a model object of the same class as the input, which 
@@ -94,10 +94,10 @@ setGeneric("run_inference",
              standardGeneric("run_inference")
            })
 
-#' @describeIn run_inference Specialization for [`EXERModel-class`]
+#' @describeIn run_inference Specialization for [`ExchangERModel-class`]
 #' @importFrom coda mcmc
 #' @export
-setMethod("run_inference", signature(x = "EXERModel"), 
+setMethod("run_inference", signature(x = "ExchangERModel"), 
   function(x, n_samples, thin_interval=1, burnin_interval=0, ...) {
     # Check validity of arguments
     if (!is_scalar(n_samples)) stop("n_samples must be a scalar")
@@ -139,9 +139,9 @@ setMethod("run_inference", signature(x = "EXERModel"),
     return(result)
   })
 
-#' @describeIn run_inference Specialization for [`MCMCResult-class`]
+#' @describeIn run_inference Specialization for [`ExchangERResult-class`]
 #' @export
-setMethod("run_inference", signature(x = "MCMCResult"), 
+setMethod("run_inference", signature(x = "ExchangERResult"), 
   function(x, n_samples, thin_interval=1, burnin_interval=0, ...) {
     # Resuming a previous chain
     if (burnin_interval != 0) 

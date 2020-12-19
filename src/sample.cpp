@@ -4,15 +4,15 @@
 #include <RcppArmadillo.h>
 
 /**
- * Convert a C++ representation of the model state to an `EXERModel` S4 object 
- * @param init_state reference to an `EXERModel` S4 object prior to 
+ * Convert a C++ representation of the model state to an `ExchangERModel` S4 object 
+ * @param init_state reference to an `ExchangERModel` S4 object prior to 
  * sampling
  * @param state reference to a State instance.
- * @return an `EXERModel` S4 object
+ * @return an `ExchangERModel` S4 object
  */
 Rcpp::S4 buildFinalS4State(const Rcpp::S4 &init_state, State &state) 
 {
-  Rcpp::S4 final_state("EXERModel");
+  Rcpp::S4 final_state("ExchangERModel");
   
   // Some slots are unchanged from init_state
   final_state.slot("attr_params") = init_state.slot("attr_params");
@@ -58,8 +58,8 @@ Rcpp::S4 buildFinalS4State(const Rcpp::S4 &init_state, State &state)
 }
 
 /**
- * Convert an `EXERModel` S4 object to a C++ representation of the model state
- * @param init_state reference to an `EXERModel` S4 object which 
+ * Convert an `ExchangERModel` S4 object to a C++ representation of the model state
+ * @param init_state reference to an `ExchangERModel` S4 object which 
  * represents the initial state of the model parameters
  * @return a State instance
  */
@@ -113,13 +113,13 @@ Rcpp::CharacterVector sequence(ptrdiff_t start, ptrdiff_t end) {
 /**
  * Run Markov chain Monte Carlo on the ER model
  * 
- * @param init_state reference to an `EXERModel` S4 object which 
+ * @param init_state reference to an `ExchangERModel` S4 object which 
  * represents the initial state of the model parameters
  * @param n_samples number of posterior samples to generate after applying
  * thinning and burnin.
  * @param thin_interval period at which to save samples
  * @param burnin_interval number of iterations to discard as burnin
- * @return an `MCMCResult` S4 object
+ * @return an `ExchangERResult` S4 object
  */
 //[[Rcpp::export(.sample)]]
 Rcpp::S4 sample(Rcpp::S4 init_state, int n_samples, int thin_interval=1, 
@@ -194,7 +194,7 @@ int burnin_interval=0)
   Rcpp::S4 final_state = buildFinalS4State(init_state, state);
 
   // Return output as a list
-  Rcpp::S4 result("MCMCResult");
+  Rcpp::S4 result("ExchangERResult");
   Rcpp::List history;
   history["links"] = hist_links;
   history["n_linked_ents"] = hist_n_linked_ents;

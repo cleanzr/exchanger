@@ -51,7 +51,7 @@ setClass("AttributeIndex",
 #' The index includes quantities that are required for running inference 
 #' such as the empirical distribution over the domain and an index for 
 #' conducting range queries. This is an internal function and should not be 
-#' required unless constructing an [`EXERModel-class`] object manually.
+#' required unless constructing an [`ExchangERModel-class`] object manually.
 #' 
 #' @param values A vector of attribute values (e.g. a column from the source 
 #'   data) represented as a factor.

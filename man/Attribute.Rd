@@ -104,5 +104,5 @@ metric.
 }
 \seealso{
 A named list of \code{Attribute} objects is required when initializing the model
-(see \code{\link{initialize_exer}}).
+(see \code{\link{exchanger}}).
 }

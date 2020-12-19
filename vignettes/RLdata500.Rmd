@@ -1,10 +1,10 @@
 ---
-title: "Introduction to exer"
+title: "Introduction to exchanger"
 author: "Neil Marchant"
 date: "17 December 2020"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to exer}
+  %\VignetteIndexEntry{Introduction to exchanger}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,7 +25,7 @@ personal records, 50 of which are duplicates with randomly-generated errors.
 In the code block, below we load the package and examine the first few rows 
 of `RLdata500`. 
 ```{r, eval=TRUE, message=FALSE, warning=FALSE}
-library(exer)
+library(exchanger)
 library(comparator)
 library(clevr)
 head(RLdata500)
@@ -74,7 +74,7 @@ All that remains is to initialize the model and run inference.
 For demonstration purposes, we only generate 100 posterior samples of the 
 linkage structure.
 ```{r, eval=TRUE, message=FALSE}
-model <- initialize_exer(RLdata500, attr_params, clust_prior)
+model <- exchanger(RLdata500, attr_params, clust_prior)
 system.time(
 result <- run_inference(model, n_samples=100, thin_interval=10, burnin_interval=1000)
 )
