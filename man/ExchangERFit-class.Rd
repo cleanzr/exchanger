@@ -3,21 +3,22 @@
 \docType{class}
 \name{ExchangERFit-class}
 \alias{ExchangERFit-class}
-\title{Inference Result}
+\title{Fitted Model}
 \description{
-Represents the result of running inference on an \code{\linkS4class{ExchangERModel}}
-object.
+Stores data associated with a fitted \code{\linkS4class{ExchangERModel}} object,
+including posterior samples, diagonstics, etc.
 }
 \details{
 The \code{history} may include the following objects:
+\describe{
 \item{clust_params}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording samples of
 the clustering prior hyperparameters (if they are random). Rows index
 samples along the Markov chain and columns index parameters.}
 \item{links}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording samples of the
 linkage/clustering structure. Rows index samples along the Markov chain
-and columns index records. Each sample of the linkage/clustering structure
-is encoded as an integer membership vector: records with the same integer
-value are assigned to the same entity.}
+and columns index records. Each sample of the linkage/clustering
+structure is encoded as an integer membership vector: records with the
+same integer value are assigned to the same entity.}
 \item{distort_probs}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording
 the distortion probabilities for each attribute/file. Rows index samples
 along the Markov chain and columns index attributes/files.}
@@ -25,10 +26,12 @@ along the Markov chain and columns index attributes/files.}
 total number of entities (clusters) that are linked to at least one
 record.}
 }
+They can be accessed using the \code{\link{extract}} method.
+}
 \section{Slots}{
 
 \describe{
-\item{\code{history}}{a list containing parameters of interest and summary
+\item{\code{history}}{a list containing model parameters of interest and summary
 statistics along the Markov chain. See below for details.}
 
 \item{\code{state}}{an \code{\linkS4class{ExchangERModel}} object which represents the state

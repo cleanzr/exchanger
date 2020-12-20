@@ -52,3 +52,21 @@ Carlo (MCMC).
 \item \code{run_inference,ExchangERFit-method}: Specialization for \code{\linkS4class{ExchangERFit}}
 }}
 
+\examples{
+## Initialize a model for ER of RLdata500
+library(comparator)
+distortionPrior <- BetaRV(1,5)
+clust_prior <- PitmanYorRP(alpha = GammaRV(1.0, 1.0), d = BetaRV(1.0, 1.0))
+attr_params <- list(
+  "fname_c1" = Attribute(Levenshtein(), distortionPrior),
+  "lname_c1" = Attribute(Levenshtein(), distortionPrior),
+  "bd" = CategoricalAttribute(distortionPrior),
+  "by" = CategoricalAttribute(distortionPrior),
+  "bm" = CategoricalAttribute(distortionPrior)
+)
+model <- exchanger(RLdata500, attr_params, clust_prior)
+
+## Run inference
+fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
+
+}

@@ -1,34 +1,36 @@
 #' @include ExchangERModel.R utils.R
 NULL
 
-#' Inference Result
+#' Fitted Model
 #' 
 #' @description 
-#' Represents the result of running inference on an [`ExchangERModel-class`] 
-#' object.
+#' Stores data associated with a fitted [`ExchangERModel-class`] object, 
+#' including posterior samples, diagonstics, etc.
 #' 
-#' @slot history a list containing parameters of interest and summary 
+#' @slot history a list containing model parameters of interest and summary 
 #'   statistics along the Markov chain. See below for details.
 #' @slot state an [`ExchangERModel-class`] object which represents the state 
 #'   of the model at the end of the Markov chain.
 #' 
 #' @details 
 #' The `history` may include the following objects:
-#' \item{clust_params}{a [`coda::mcmc`] matrix object recording samples of 
-#' the clustering prior hyperparameters (if they are random). Rows index 
-#' samples along the Markov chain and columns index parameters.}
-#' \item{links}{a [`coda::mcmc`] matrix object recording samples of the 
-#' linkage/clustering structure. Rows index samples along the Markov chain 
-#' and columns index records. Each sample of the linkage/clustering structure 
-#' is encoded as an integer membership vector: records with the same integer 
-#' value are assigned to the same entity.}
-#' \item{distort_probs}{a [`coda::mcmc`] matrix object recording 
-#' the distortion probabilities for each attribute/file. Rows index samples 
-#' along the Markov chain and columns index attributes/files.}
-#' \item{n_linked_ents}{a [`coda::mcmc`] vector object recording the 
-#' total number of entities (clusters) that are linked to at least one 
-#' record.}
-#' 
+#' \describe{
+#'   \item{clust_params}{a [`coda::mcmc`] matrix object recording samples of 
+#'     the clustering prior hyperparameters (if they are random). Rows index 
+#'     samples along the Markov chain and columns index parameters.}
+#'   \item{links}{a [`coda::mcmc`] matrix object recording samples of the 
+#'     linkage/clustering structure. Rows index samples along the Markov chain 
+#'     and columns index records. Each sample of the linkage/clustering 
+#'     structure is encoded as an integer membership vector: records with the 
+#'     same integer value are assigned to the same entity.}
+#'   \item{distort_probs}{a [`coda::mcmc`] matrix object recording 
+#'     the distortion probabilities for each attribute/file. Rows index samples 
+#'     along the Markov chain and columns index attributes/files.}
+#'   \item{n_linked_ents}{a [`coda::mcmc`] vector object recording the 
+#'     total number of entities (clusters) that are linked to at least one 
+#'     record.}
+#' }
+#' They can be accessed using the [`extract`] method.
 setClass("ExchangERFit", 
          slots = c(history = "list",
                    state = "ExchangERModel"))
@@ -204,6 +206,23 @@ combine_results <- function(resultA, resultB) {
 #' \item{state}{a model object of the same class as the input, which 
 #'   represents the state of all parameters in the last step of the Markov 
 #'   chain.}
+#' 
+#' @examples
+#' ## Initialize a model for ER of RLdata500
+#' library(comparator)
+#' distortionPrior <- BetaRV(1,5)
+#' clust_prior <- PitmanYorRP(alpha = GammaRV(1.0, 1.0), d = BetaRV(1.0, 1.0))
+#' attr_params <- list(
+#'   "fname_c1" = Attribute(Levenshtein(), distortionPrior),
+#'   "lname_c1" = Attribute(Levenshtein(), distortionPrior),
+#'   "bd" = CategoricalAttribute(distortionPrior),
+#'   "by" = CategoricalAttribute(distortionPrior),
+#'   "bm" = CategoricalAttribute(distortionPrior)
+#' )
+#' model <- exchanger(RLdata500, attr_params, clust_prior)
+#' 
+#' ## Run inference
+#' fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
 #' 
 #' @rdname run_inference
 #' @export
