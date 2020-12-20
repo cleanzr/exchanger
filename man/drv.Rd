@@ -6,7 +6,7 @@
 \alias{drv,numeric,GammaRV-method}
 \alias{drv,numeric,BetaRV-method}
 \alias{drv,numeric,ShiftedNegBinomRV-method}
-\title{Density Function}
+\title{Density Function Associated with a Random Variable}
 \usage{
 drv(x, rv, log, ...)
 

@@ -3,7 +3,7 @@
 \name{Attribute}
 \alias{Attribute}
 \alias{CategoricalAttribute}
-\title{Attribute specification}
+\title{Attribute Model Parameters}
 \usage{
 Attribute(
   dist_fn,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/GammaRV.R
 \name{GammaRV}
 \alias{GammaRV}
-\title{Gamma-distributed Random Variable}
+\title{Gamma Random Variable}
 \usage{
 GammaRV(shape, rate)
 }

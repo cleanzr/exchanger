@@ -2,7 +2,7 @@
 % Please edit documentation in R/DirichletRV.R
 \name{DirichletRV}
 \alias{DirichletRV}
-\title{Dirichlet-distributed Random Vector}
+\title{Dirichlet Random Vector}
 \usage{
 DirichletRV(alpha)
 }

@@ -7,7 +7,7 @@
 \alias{var,BetaRV-method}
 \alias{var,DirichletRV-method}
 \alias{var,ShiftedNegBinomRV-method}
-\title{Variance-Covariance}
+\title{Variance-Covariance of a Random Variable}
 \usage{
 var(x, ...)
 

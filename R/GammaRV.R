@@ -27,7 +27,7 @@ NULL
 setClass("GammaRV", slots = c(shape = "numeric", rate = "numeric"), 
          validity=.check_GammaRV, contains = "RV")
 
-#' Gamma-distributed Random Variable
+#' Gamma Random Variable
 #' 
 #' @description
 #' Represents a random variable with a Gamma distribution.

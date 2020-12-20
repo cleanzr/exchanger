@@ -2,7 +2,7 @@
 % Please edit documentation in R/BetaRV.R
 \name{BetaRV}
 \alias{BetaRV}
-\title{Beta-distributed Random Variable}
+\title{Beta Random Variable}
 \usage{
 BetaRV(shape1, shape2)
 }

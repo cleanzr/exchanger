@@ -4,7 +4,7 @@
 \name{ExchangERModel-class}
 \alias{ExchangERModel-class}
 \alias{ExchangERModel}
-\title{Container class for a Bayesian entity resolution model}
+\title{ExchangER Model Class}
 \description{
 This class records the state of all model parameters. It also stores
 indexing data structures for each attribute (\code{attr_indices}) which

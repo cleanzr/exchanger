@@ -2,7 +2,7 @@
 % Please edit documentation in R/RV.R
 \name{sd}
 \alias{sd}
-\title{Standard Deviation}
+\title{Standard Deviation of a Random Variable}
 \usage{
 sd(x, ...)
 }

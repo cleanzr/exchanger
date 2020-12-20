@@ -7,7 +7,7 @@
 \alias{mean,BetaRV-method}
 \alias{mean,DirichletRV-method}
 \alias{mean,ShiftedNegBinomRV-method}
-\title{Mean}
+\title{Mean of a Random Variable}
 \usage{
 mean(x, ...)
 

@@ -178,7 +178,7 @@ combine_results <- function(resultA, resultB) {
   return(new("ExchangERFit", history=hist_combined, state=resultB@state))
 }
 
-#' Run inference for a model
+#' Run Inference for a Model
 #' 
 #' @description
 #' Runs approximate inference for a model using Markov chain Monte 

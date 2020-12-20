@@ -3,7 +3,7 @@
 \docType{class}
 \name{RV-class}
 \alias{RV-class}
-\title{Random variable}
+\title{Random Variable}
 \description{
 Virtual class for a random variable
 }

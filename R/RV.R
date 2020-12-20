@@ -1,6 +1,6 @@
 # Define a generic random variable class
 
-#' Random variable
+#' Random Variable
 #' 
 #' @description 
 #' Virtual class for a random variable
@@ -16,7 +16,7 @@ setClass("RV")
 #' @noRd
 is.RV <- function(x) inherits(x, "RV")
 
-#' Mean
+#' Mean of a Random Variable
 #' 
 #' @description 
 #' Computes the mean (expected value) of a random variable
@@ -35,7 +35,7 @@ is.RV <- function(x) inherits(x, "RV")
 setGeneric("mean", function(x, ...) standardGeneric("mean"), 
            signature = c("x"))
 
-#' Standard Deviation
+#' Standard Deviation of a Random Variable
 #' 
 #' @description 
 #' Computes the standard deviation of a random variable
@@ -59,7 +59,7 @@ setGeneric("sd", function(x, ...) {
     stop("sd not defined")
 }, signature = c("x"))
 
-#' Variance-Covariance
+#' Variance-Covariance of a Random Variable
 #' 
 #' @description 
 #' Computes the variance-covariance matrix of a random variable
@@ -79,7 +79,7 @@ setGeneric("sd", function(x, ...) {
 setGeneric("var", function(x, ...) standardGeneric("var"), 
            signature = c("x"))
 
-#' Density Function
+#' Density Function Associated with a Random Variable
 #' 
 #' @description 
 #' Computes the density of a random variable at a point

@@ -97,7 +97,7 @@ NULL
   if (length(errors)==0) TRUE else errors
 }
 
-#' Container class for a Bayesian entity resolution model
+#' ExchangER Model Class
 #' 
 #' @description
 #' This class records the state of all model parameters. It also stores 
@@ -186,7 +186,7 @@ setMethod("show", "ExchangERModel", function(object) {
   }
 })
 
-#' Initialize an exchanger model
+#' Initialize an ExchangERModel
 #' 
 #' @description
 #' Initializes an [`ExchangERModel-class`] given observed data and model 

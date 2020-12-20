@@ -15,7 +15,7 @@ NULL
 setClass("DirichletRV", slots = c(alpha = "numeric"), 
          validity=.check_DirichletRV, contains = "RV")
 
-#' Dirichlet-distributed Random Vector
+#' Dirichlet Random Vector
 #' 
 #' @description
 #' Represents a random vector with a Dirichlet distribution.

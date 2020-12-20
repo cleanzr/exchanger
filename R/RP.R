@@ -1,7 +1,7 @@
 #' @include RV.R
 NULL
 
-#' Random partition
+#' Random Partition
 #' 
 #' @description
 #' A virtual class for a random partition, which is a subclass of 

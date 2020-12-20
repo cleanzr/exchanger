@@ -2,7 +2,7 @@
 % Please edit documentation in R/ExchangERModel.R
 \name{exchanger}
 \alias{exchanger}
-\title{Initialize an exchanger model}
+\title{Initialize an ExchangERModel}
 \usage{
 exchanger(
   data,

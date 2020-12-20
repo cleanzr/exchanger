@@ -22,7 +22,7 @@ setClass("Attribute", slots=c(dist_fn="function",
            if (length(errors)==0) TRUE else errors
          })
 
-#' Attribute specification
+#' Attribute Model Parameters
 #' 
 #' @description
 #' Constructs an `Attribute` object, which stores model parameters associated 

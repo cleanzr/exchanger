@@ -27,7 +27,7 @@ NULL
 setClass("BetaRV", slots = c(shape1 = "numeric", shape2 = "numeric"), 
          validity=.check_BetaRV, contains = "RV")
 
-#' Beta-distributed Random Variable
+#' Beta Random Variable
 #'
 #' @description
 #' Represents a random variable with a Beta distribution.

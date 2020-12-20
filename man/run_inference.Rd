@@ -4,7 +4,7 @@
 \alias{run_inference}
 \alias{run_inference,ExchangERModel-method}
 \alias{run_inference,ExchangERFit-method}
-\title{Run inference for a model}
+\title{Run Inference for a Model}
 \usage{
 run_inference(x, n_samples, thin_interval = 1, burnin_interval = 0, ...)
 

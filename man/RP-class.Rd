@@ -3,7 +3,7 @@
 \docType{class}
 \name{RP-class}
 \alias{RP-class}
-\title{Random partition}
+\title{Random Partition}
 \description{
 A virtual class for a random partition, which is a subclass of
 \code{\linkS4class{RV}}.
