@@ -70,6 +70,9 @@ setMethod("show", "ExchangERFit", function(object) {
 })
 
 
+setGeneric("extract", function(x, params = NULL, include = TRUE) standardGeneric("extract"))
+
+
 #' Extract Samples
 #' 
 #' @description 
@@ -105,15 +108,12 @@ setMethod("show", "ExchangERFit", function(object) {
 #' model <- exchanger(RLdata500, attr_params, clust_prior)
 #' 
 #' ## Run inference
-#' fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
+#' fit <- run_inference(model, n_samples=100, burnin_interval=100)
 #' 
 #' ## Extract samples of the linkage structure
 #' links <- extract(fit, "links")
 #' 
-#' @export
-setGeneric("extract", function(x, params = NULL, include = TRUE) standardGeneric("extract"))
-
-
+#' @aliases extract
 #' @export
 setMethod("extract", signature = c(x = "ExchangERFit"), 
           function (x, params = NULL, include = TRUE) {
@@ -222,7 +222,7 @@ combine_results <- function(resultA, resultB) {
 #' model <- exchanger(RLdata500, attr_params, clust_prior)
 #' 
 #' ## Run inference
-#' fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
+#' fit <- run_inference(model, n_samples=100, burnin_interval=100)
 #' 
 #' @rdname run_inference
 #' @export

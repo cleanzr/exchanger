@@ -67,6 +67,6 @@ attr_params <- list(
 model <- exchanger(RLdata500, attr_params, clust_prior)
 
 ## Run inference
-fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
+fit <- run_inference(model, n_samples=100, burnin_interval=100)
 
 }
