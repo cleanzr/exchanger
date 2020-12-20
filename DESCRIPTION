@@ -30,12 +30,12 @@ Imports: Rcpp (>= 0.12.12),
     coda (>= 0.17-1),
     future.apply (>= 1.0.0),
     comparator (>= 0.1.1),
-    methods
+    methods,
+    mcmcse (>= 1.4)
 LinkingTo: Rcpp, 
     RcppArmadillo, 
     RcppProgress, 
-    BH (>= 1.69.0),
-    mcmcse
+    BH (>= 1.69.0)
 LazyData: true
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
