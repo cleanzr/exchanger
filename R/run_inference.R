@@ -66,6 +66,69 @@ setMethod("show", "ExchangERFit", function(object) {
     }
   }
 })
+
+
+#' Extract Samples
+#' 
+#' @description 
+#' Extract samples from a fitted model
+#' 
+#' @param x an [`ExchangERFit-class`] object
+#' @param params an optional character vector specifying the names of
+#'   parameters/summary statistics to extract. If not specified, all 
+#'   parameters and summary statistics are extracted.
+#' @param include a logical scalar indicating whether the parameters in 
+#'   `params` should be included (TRUE) or excluded (FALSE).
+#'  
+#' @return
+#' If params is of length 1, the samples for the requested parameter are 
+#' returned as a [`coda::mcmc`] object.
+#' 
+#' If params is NULL or of length greater than 1, the parameters are returned 
+#' in a named list. The samples for each parameter are represented as a
+#' [`coda::mcmc`] object.
+#' 
+#' @examples
+#' #' ## Initialize a model for ER of RLdata500
+#' library(comparator)
+#' distortionPrior <- BetaRV(1,5)
+#' clust_prior <- PitmanYorRP(alpha = GammaRV(1.0, 1.0), d = BetaRV(1.0, 1.0))
+#' attr_params <- list(
+#'   "fname_c1" = Attribute(Levenshtein(), distortionPrior),
+#'   "lname_c1" = Attribute(Levenshtein(), distortionPrior),
+#'   "bd" = CategoricalAttribute(distortionPrior),
+#'   "by" = CategoricalAttribute(distortionPrior),
+#'   "bm" = CategoricalAttribute(distortionPrior)
+#' )
+#' model <- exchanger(RLdata500, attr_params, clust_prior)
+#' 
+#' ## Run inference
+#' fit <- run_inference(model, n_samples=2000, burnin_interval=1000)
+#' 
+#' ## Extract samples of the linkage structure
+#' links <- extract(fit, "links")
+#' 
+#' @export
+setGeneric("extract", function(x, params = NULL, include = TRUE) standardGeneric("extract"))
+
+
+#' @export
+setMethod("extract", signature = c(x = "ExchangERFit"), 
+          function (x, params = NULL, include = TRUE) {
+            if (is.null(params)) return(x@history)
+            avail_params <- names(x@history)
+            sel_params <- if (include) {
+              intersect(params, avail_params)
+            } else {
+              setdiff(avail_params, params)
+            }
+            if (length(params) == 1 & length(sel_params) == 1) {
+              x@history[[sel_params]]
+            } else {
+              x@history[sel_params]
+            }
+          })
+
 #' Function to concatenate two ExchangERFit objects
 #' 
 #' @param resultA,resultB [`ExchangERFit-class`] objects. `resultB` must occur 

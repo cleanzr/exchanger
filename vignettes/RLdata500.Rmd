@@ -83,8 +83,10 @@ We recommend inspecting trace plots to verify that the Markov chain has
 reached equilibrium and is mixing well. The results below seem acceptable given 
 the small number of samples.
 ```{r}
-plot(result@history$n_linked_ents)
-plot(result@history$distort_probs)
+n_linked_ents <- extract(result, "n_linked_ents")
+distort_probs <- extract(result, "distort_probs")
+plot(n_linked_ents)
+plot(distort_probs)
 ```
 
 We can obtain a point estimate of the most likely linkage structure using the 
