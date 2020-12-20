@@ -6,7 +6,7 @@
 \title{Fitted Model}
 \description{
 Stores data associated with a fitted \code{\linkS4class{ExchangERModel}} object,
-including posterior samples, diagonstics, etc.
+including posterior samples, diagnostics, etc.
 }
 \details{
 The \code{history} may include the following objects:

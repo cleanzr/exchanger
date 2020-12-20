@@ -5,7 +5,7 @@ NULL
 #' 
 #' @description 
 #' Stores data associated with a fitted [`ExchangERModel-class`] object, 
-#' including posterior samples, diagonstics, etc.
+#' including posterior samples, diagnostics, etc.
 #' 
 #' @slot history a list containing model parameters of interest and summary 
 #'   statistics along the Markov chain. See below for details.
@@ -193,7 +193,7 @@ combine_results <- function(resultA, resultB) {
 #' @param n_samples a positive integer. The number of samples to generate 
 #'   after applying burn-in and thinning.
 #' @param thin_interval a positive integer. The period for saving samples 
-#'   (intermediate samples are discared). The default value is 1, which 
+#'   (intermediate samples are discarded). The default value is 1, which 
 #'   means no thinning is applied.
 #' @param burnin_interval a non-negative integer. The number of initial samples 
 #'   to discard as burn-in. The default value is 0, which means no burn-in is 

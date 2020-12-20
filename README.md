@@ -151,7 +151,7 @@ print(measures)
 #> [1] 0.989996
 ```
 
-## Licence
+## License
 
 GPL-3
 

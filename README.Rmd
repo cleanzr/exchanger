@@ -129,7 +129,7 @@ measures <- eval_report_pairs(true_pairs, pred_pairs, num_pairs=n_records*(n_rec
 print(measures)
 ```
 
-## Licence
+## License
 GPL-3
 
 ## References

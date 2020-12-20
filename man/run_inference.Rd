@@ -24,7 +24,7 @@ samples to the existing history.}
 after applying burn-in and thinning.}
 
 \item{thin_interval}{a positive integer. The period for saving samples
-(intermediate samples are discared). The default value is 1, which
+(intermediate samples are discarded). The default value is 1, which
 means no thinning is applied.}
 
 \item{burnin_interval}{a non-negative integer. The number of initial samples
