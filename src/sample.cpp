@@ -99,17 +99,6 @@ State readS4State(Rcpp::S4 init_state)
     std::move(clust_params_) );
 }
 
-Rcpp::CharacterVector sequence(int start, int end) {
-  int size = std::max(end - start + 1, 0);
-  Rcpp::CharacterVector out(size);
-  
-  for (auto &x : out) {
-    x = std::to_string(start);
-    start++;
-  }
-  return out;
-}
-
 /**
  * Run Markov chain Monte Carlo on the ER model
  * 
@@ -129,6 +118,7 @@ int burnin_interval=0)
   Rcpp::Rcout << "Running with CHECK_WEIGHTS" << std::endl;
   #endif
   State state = readS4State(init_state);
+  
   // Convenience variables
   ClustParams *clust_params = state.clust_params_.get();
   
@@ -140,14 +130,22 @@ int burnin_interval=0)
   Rcpp::IntegerMatrix hist_links(n_samples, state.recs_.n_records());
   colnames(hist_links) = rec_ids;
   
-  Rcpp::IntegerMatrix hist_n_distorted(n_samples, state.recs_.n_attributes());
   const Rcpp::IntegerMatrix &rec_attrs = init_state.slot("rec_attrs");
-  colnames(hist_n_distorted) = rownames(rec_attrs);
-  
-  Rcpp::IntegerMatrix hist_n_distorted_per_rec(n_samples, state.recs_.n_attributes() + 1);
-  colnames(hist_n_distorted_per_rec) = sequence(0, state.recs_.n_attributes());
+  Rcpp::CharacterVector attrs_names = rownames(rec_attrs);
+  const Rcpp::IntegerVector& file_ids = init_state.slot("file_ids");
+  Rcpp::CharacterVector file_ids_names = file_ids.attr("levels");
+  Rcpp::NumericMatrix hist_distort_probs(n_samples, state.recs_.n_attributes() * state.recs_.n_files());
+  Rcpp::CharacterVector hist_distort_probs_nms(state.recs_.n_attributes() * state.recs_.n_files());
+  for (int i = 0; i < state.recs_.n_files(); ++i ) {
+    for (int j = 0; j < state.recs_.n_attributes(); ++j) {
+      std::string name = Rcpp::as<std::string>(attrs_names[j]) + "[" + Rcpp::as<std::string>(file_ids_names[i]) + "]"; 
+      hist_distort_probs_nms[i + j * state.recs_.n_files()] = name;
+    }
+  }
+  colnames(hist_distort_probs) = hist_distort_probs_nms;
   
   Rcpp::IntegerMatrix hist_n_linked_ents(n_samples, 1);
+  colnames(hist_n_linked_ents) = Rcpp::CharacterVector::create("n_linked_ents");
   
   Rcpp::NumericMatrix hist_clust_params;
   if (clust_params->num_random() > 0) {
@@ -174,11 +172,10 @@ int burnin_interval=0)
         // Update history using this sample
         Rcpp::IntegerVector links_R = state.links_.to_R();
         Rcpp::IntegerVector n_distorted = state.recs_.R_n_distorted_per_attr();
-        Rcpp::IntegerVector n_distorted_per_rec = state.recs_.R_n_distorted_per_rec();
         hist_links.row(sample_ctr) = links_R;
-        hist_n_distorted.row(sample_ctr) = n_distorted;
-        hist_n_distorted_per_rec.row(sample_ctr) = n_distorted_per_rec;
         hist_n_linked_ents(sample_ctr, 0) = state.links_.n_linked_ents();
+        Rcpp::NumericVector distort_prob = state.distort_probs_.to_R();
+        hist_distort_probs.row(sample_ctr) = distort_prob;
         if (hist_clust_params.ncol() > 0) {
           hist_clust_params.row(sample_ctr) = clust_params->to_R_vec();
         }
@@ -197,9 +194,8 @@ int burnin_interval=0)
   Rcpp::S4 result("ExchangERResult");
   Rcpp::List history;
   history["links"] = hist_links;
+  history["distort_probs"] = hist_distort_probs;
   history["n_linked_ents"] = hist_n_linked_ents;
-  history["n_distorted_per_attr"] = hist_n_distorted;
-  history["n_distorted_per_rec"] = hist_n_distorted_per_rec;
   if (hist_clust_params.ncol() > 0) history["clust_params"] = hist_clust_params;
   result.slot("history") = history;
   result.slot("state") = final_state;

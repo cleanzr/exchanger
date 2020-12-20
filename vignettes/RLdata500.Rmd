@@ -71,13 +71,20 @@ clust_prior <- PitmanYorRP(alpha = GammaRV(1, 1), d = BetaRV(1, 1))
 ```
 
 All that remains is to initialize the model and run inference. 
-For demonstration purposes, we only generate 100 posterior samples of the 
-linkage structure.
+For demonstration purposes, we only generate 100 posterior samples.
 ```{r, eval=TRUE, message=FALSE}
 model <- exchanger(RLdata500, attr_params, clust_prior)
 system.time(
 result <- run_inference(model, n_samples=100, thin_interval=10, burnin_interval=1000)
 )
+```
+
+We recommend inspecting trace plots to verify that the Markov chain has 
+reached equilibrium and is mixing well. The results below seem acceptable given 
+the small number of samples.
+```{r}
+plot(result@history$n_linked_ents)
+plot(result@history$distort_probs)
 ```
 
 We can obtain a point estimate of the most likely linkage structure using the 
@@ -86,7 +93,9 @@ _shared most probable maximal matching sets method_.
 pred_clusters <- smp_clusters(result)
 ```
 
-Then we evaluate with respect to the true matching.
+Since RLdata500 comes with ground truth, we can evaluate the predicted 
+linkage structure using supervised metrics. We find that the model performs 
+well on this data set, achieving high pairwise precision and recall.
 ```{r, eval=TRUE}
 n_records <- nrow(RLdata500)
 true_pairs <- membership_to_pairs(identity.RLdata500)
@@ -95,8 +104,3 @@ measures <- eval_report_pairs(true_pairs, pred_pairs, num_pairs=n_records*(n_rec
 print(measures)
 ```
 
-Inspect trace plots
-```{r}
-plot(result@history$n_linked_ents, type = "l", xlab="Iteration", ylab="Num. linked entities")
-matplot(result@history$n_distorted_per_attr / n_records * 100, type="l", xlab="Iteration", ylab="% distorted")
-```

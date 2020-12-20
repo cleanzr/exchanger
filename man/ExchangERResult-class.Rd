@@ -3,15 +3,33 @@
 \docType{class}
 \name{ExchangERResult-class}
 \alias{ExchangERResult-class}
-\title{Class for MCMC output}
+\title{Inference Result}
 \description{
-Class for MCMC output
+Represents the result of running inference on an \code{\linkS4class{ExchangERModel}}
+object.
+}
+\details{
+The \code{history} may include the following objects:
+\item{clust_params}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording samples of
+the clustering prior hyperparameters (if they are random). Rows index
+samples along the Markov chain and columns index parameters.}
+\item{links}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording samples of the
+linkage/clustering structure. Rows index samples along the Markov chain
+and columns index records. Each sample of the linkage/clustering structure
+is encoded as an integer membership vector: records with the same integer
+value are assigned to the same entity.}
+\item{distort_probs}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording
+the distortion probabilities for each attribute/file. Rows index samples
+along the Markov chain and columns index attributes/files.}
+\item{n_linked_ents}{a \code{\link[coda:mcmc]{coda::mcmc}} vector object recording the
+total number of entities (clusters) that are linked to at least one
+record.}
 }
 \section{Slots}{
 
 \describe{
 \item{\code{history}}{a list containing parameters of interest and summary
-statistics along the Markov chain.}
+statistics along the Markov chain. See below for details.}
 
 \item{\code{state}}{an \code{\linkS4class{ExchangERModel}} object which represents the state
 of the model at the end of the Markov chain.}
