@@ -169,6 +169,22 @@ ExchangERModel <- setClass("ExchangERModel",
                       ),
                       validity = .check_ExchangERModel)
 
+setMethod("show", "ExchangERModel", function(object) {
+  n_records <- length(object@rec_ids)
+  n_files <- nlevels(object@file_ids)
+  cat("ExchangERModel\n",
+      "Defined on ", n_records, " records from ", n_files, 
+      if (n_files > 1) " files" else " file", "\n",
+      "Clustering prior:  ", format(object@clust_prior), "\n",
+      "Attributes used for matching:\n", sep="")
+  attr_params <- object@attr_params
+  for (a in names(attr_params)) {
+    attr_str <- capture.output(print(attr_params[[a]]))
+    cat("  * ", a, ": ", attr_str[1], "\n", sep="")
+    writeLines(paste0("  ", attr_str[-1]))
+  }
+})
+
 #' Initialize an exchanger model
 #' 
 #' @description
@@ -207,7 +223,7 @@ ExchangERModel <- setClass("ExchangERModel",
 #' 
 #' @export
 exchanger <- function(data, attr_params, clust_prior, 
-                            file_id_colname=NULL, rec_id_colname=NULL) {
+                      file_id_colname=NULL, rec_id_colname=NULL) {
   # Input validation
   data_colnames <- colnames(data)
   if (is.null(data_colnames))

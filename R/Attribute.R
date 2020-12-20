@@ -108,6 +108,15 @@ Attribute <- function(dist_fn, distort_prob_prior,
       entity_dist_prior=entity_dist_prior)
 }
 
+setMethod("show", "Attribute", function(object) {
+  cat("Attribute with distance function\n",
+      "  Distort. prob. prior:  ", format(object@distort_prob_prior), "\n",
+      "  Distort. distn. prior: ", format(object@distort_dist_prior), "\n",
+      "  Entity distn. prior:   ", format(object@entity_dist_prior), "\n",
+      "  Exclude entity value:  ", format(object@exclude_entity_value), "\n",
+      sep="")
+})
+
 setClass("CategoricalAttribute", contains = "Attribute")
 
 #' @rdname Attribute
@@ -128,3 +137,12 @@ CategoricalAttribute <- function(distort_prob_prior,
       exclude_entity_value=exclude_entity_value,
       entity_dist_prior=entity_dist_prior)
 }
+
+setMethod("show", "CategoricalAttribute", function(object) {
+  cat("Attribute with constant distance function\n",
+      "  Distort. prob. prior:  ", format(object@distort_prob_prior), "\n",
+      "  Distort. distn. prior: ", format(object@distort_dist_prior), "\n",
+      "  Entity distn. prior:   ", format(object@entity_dist_prior), "\n",
+      "  Exclude entity value:  ", format(object@exclude_entity_value), "\n",
+      sep="")
+})

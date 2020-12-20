@@ -59,6 +59,15 @@ ShiftedNegBinomRV <- function(size, prob) {
   new("ShiftedNegBinomRV", size=size, prob=prob)
 }
 
+setMethod("format", "ShiftedNegBinomRV", function(x, ...) {
+  paste0("ShiftedNegBinomRV(size=", x@size, ", prob=", x@prob, ")")
+})
+
+setMethod("show", "ShiftedNegBinomRV", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x an \R object
 #' @return \code{is.ShiftedNegBinomRV} returns TRUE if the argument is a 
 #' `ShiftedNegBinomRV` object and FALSE otherwise.

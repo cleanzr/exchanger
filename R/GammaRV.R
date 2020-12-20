@@ -56,6 +56,15 @@ GammaRV <- function(shape, rate) {
   new("GammaRV", shape=shape, rate=rate)
 }
 
+setMethod("format", "GammaRV", function(x, ...) {
+  paste0("GammaRV(shape=", x@shape, ", rate=", x@rate, ")")
+})
+
+setMethod("show", "GammaRV", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x An \R object
 #' @return \code{is.GammaRV} returns TRUE if the argument is a `BetaRV` 
 #' object and FALSE otherwise.

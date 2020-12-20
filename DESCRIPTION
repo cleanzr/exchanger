@@ -34,7 +34,8 @@ Imports: Rcpp (>= 0.12.12),
 LinkingTo: Rcpp, 
     RcppArmadillo, 
     RcppProgress, 
-    BH (>= 1.69.0)
+    BH (>= 1.69.0),
+    mcmcse
 LazyData: true
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)

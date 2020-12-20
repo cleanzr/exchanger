@@ -58,6 +58,17 @@ GeneralizedCouponRP <- function(m, kappa) {
   new("GeneralizedCouponRP", m=m, kappa=kappa)
 }
 
+setMethod("format", "GeneralizedCouponRP", function(x, ...) {
+  m <- format(x@m, ...)
+  kappa <- format(x@kappa, ...)
+  paste0("GeneralizedCouponRP(m=", m, ", kappa=", kappa, ")")
+})
+
+setMethod("show", "GeneralizedCouponRP", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x An \R object.
 #' @return `is.GeneralizedCouponRP` returns TRUE if the argument is a 
 #'   `GeneralizedCouponRP` object and FALSE otherwise.

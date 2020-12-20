@@ -71,6 +71,17 @@ PitmanYorRP <- function(alpha, d) {
 #' @keywords internal
 is.PitmanYorRP <- function(x) inherits(x, "PitmanYorRP")
 
+setMethod("format", "PitmanYorRP", function(x, ...) {
+  alpha <- format(x@alpha, ...)
+  d <- format(x@d, ...)
+  paste0("PitmanYorRP(alpha=", alpha, ", d=", d, ")")
+})
+
+setMethod("show", "PitmanYorRP", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' Ewens Random Partition
 #' 
 #' @description

@@ -33,6 +33,39 @@ setClass("ExchangERFit",
          slots = c(history = "list",
                    state = "ExchangERModel"))
 
+#' @importFrom mcmcse multiESS ess
+setMethod("show", "ExchangERFit", function(object) {
+  # Extract info about burn-in, thinning, number of samples
+  mcpar <- attr(object@history, "mcpar")
+  start_iter <- mcpar[1]
+  end_iter <- mcpar[2]
+  thin <- mcpar[3]
+  n_samples <- end_iter - start_iter + thin
+  
+  # Compute effective sample size for particular variables, if present
+  valid_ess_varnames <- c("n_linked_ents", "distort_probs", "clust_params")
+  ess <- list()
+  for (varname in intersect(valid_ess_varnames, names(object@history))) {
+    var <- object@history[[varname]]
+    if (ncol(var) > 1)
+      ess[[varname]] <- mcmcse::multiESS(var)
+    else
+      ess[[varname]] <- mcmcse::ess(var)
+  }
+  
+  cat("Fitted ExchangERModel\n",
+      n_samples, if (n_samples > 1) " samples" else " sample", 
+        " after thinning (interval=", thin, 
+        ") with burn-in (interval=", start_iter, ")\n",
+      "Recorded parameters/summary statistics: \n", 
+      "  ",  toString(names(object@history)), "\n", sep="")
+  if (length(ess) > 0) {
+    cat("Effective sample size:\n")
+    for (varname in names(ess)) {
+      cat("  ", varname, ": ", ess[[varname]], "\n", sep="")
+    }
+  }
+})
 #' Function to concatenate two ExchangERFit objects
 #' 
 #' @param resultA,resultB [`ExchangERFit-class`] objects. `resultB` must occur 

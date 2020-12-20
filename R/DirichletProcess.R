@@ -36,6 +36,17 @@ DirichletProcess <- function(alpha, H=NULL) {
   new("DirichletProcess", alpha=alpha, H=H)
 }
 
+setMethod("format", "DirichletProcess", function(x, ...) {
+  alpha <- format(x@alpha, ...)
+  H <- format(x@H, ...)
+  paste0("DirichletProcess(alpha=", alpha, ", H=", H, ")")
+})
+
+setMethod("show", "DirichletProcess", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x An \R object
 #' @return \code{is.DirichletProcess} returns TRUE if the argument is a 
 #' `DirichletProcess` object and FALSE otherwise.

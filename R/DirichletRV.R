@@ -44,6 +44,16 @@ DirichletRV <- function(alpha) {
   new("DirichletRV", alpha=alpha)
 }
 
+setMethod("format", "DirichletRV", function(x, ...) {
+  alpha <- toString(x@alpha, width=20)
+  paste0("DirichletRV(alpha=", alpha, ")")
+})
+
+setMethod("show", "DirichletRV", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x An \R object
 #' @return `is.DirichletRV` returns TRUE if the argument is a `BetaRV` 
 #' object and FALSE otherwise.

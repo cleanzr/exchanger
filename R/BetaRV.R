@@ -55,6 +55,15 @@ BetaRV <- function(shape1, shape2) {
   new("BetaRV", shape1=shape1, shape2=shape2)
 }
 
+setMethod("format", "BetaRV", function(x, ...) {
+  paste0("BetaRV(shape1=", x@shape1, ", shape2=", x@shape2, ")")
+})
+
+setMethod("show", "BetaRV", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
+
 #' @param x An \R object
 #' @return `is.BetaRV` returns TRUE if the argument is a `BetaRV` 
 #' object and FALSE otherwise

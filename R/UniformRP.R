@@ -1,6 +1,8 @@
 #' @include RP.R
 NULL
 
+setClass("UniformRP", contains = "RP")
+
 #' Uniform Partition
 #' 
 #' @description
@@ -14,7 +16,18 @@ NULL
 #' \code{\link{EwensRP}}, \code{\link{GeneralizedCouponRP}}
 #' 
 #' @export
-UniformRP <- setClass("UniformRP", contains = "RP")
+UniformRP <- function() {
+  new("UniformRP")
+}
+
+setMethod("format", "UniformRP", function(x, ...) {
+  "UniformRP()"
+})
+
+setMethod("show", "UniformRP", function(object) {
+  writeLines(format(object))
+  invisible(object)
+})
 
 #' @param x An \R object.
 #' @return `is.UniformRP` returns TRUE if the argument is a 
