@@ -108,7 +108,7 @@ State readS4State(Rcpp::S4 init_state)
  * thinning and burnin.
  * @param thin_interval period at which to save samples
  * @param burnin_interval number of iterations to discard as burnin
- * @return an `ExchangERResult` S4 object
+ * @return an `ExchangERFit` S4 object
  */
 //[[Rcpp::export(.sample)]]
 Rcpp::S4 sample(Rcpp::S4 init_state, int n_samples, int thin_interval=1, 
@@ -191,7 +191,7 @@ int burnin_interval=0)
   Rcpp::S4 final_state = buildFinalS4State(init_state, state);
 
   // Return output as a list
-  Rcpp::S4 result("ExchangERResult");
+  Rcpp::S4 result("ExchangERFit");
   Rcpp::List history;
   history["links"] = hist_links;
   history["distort_probs"] = hist_distort_probs;

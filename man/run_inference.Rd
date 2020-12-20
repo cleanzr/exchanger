@@ -3,19 +3,19 @@
 \name{run_inference}
 \alias{run_inference}
 \alias{run_inference,ExchangERModel-method}
-\alias{run_inference,ExchangERResult-method}
+\alias{run_inference,ExchangERFit-method}
 \title{Run inference for a model}
 \usage{
 run_inference(x, n_samples, thin_interval = 1, burnin_interval = 0, ...)
 
 \S4method{run_inference}{ExchangERModel}(x, n_samples, thin_interval = 1, burnin_interval = 0, ...)
 
-\S4method{run_inference}{ExchangERResult}(x, n_samples, thin_interval = 1, burnin_interval = 0, ...)
+\S4method{run_inference}{ExchangERFit}(x, n_samples, thin_interval = 1, burnin_interval = 0, ...)
 }
 \arguments{
 \item{x}{an \R object representing a model or a model with sampling
 history. Currently, there are methods defined for \code{\linkS4class{ExchangERModel}}
-objects and \code{\linkS4class{ExchangERResult}} objects. Passing a model begins
+objects and \code{\linkS4class{ExchangERFit}} objects. Passing a model begins
 sampling from scratch, in which case a burn-in period is recommended.
 Passing a model with sampling history will resume inference, adding
 samples to the existing history.}
@@ -34,7 +34,7 @@ applied.}
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-Returns an \code{\linkS4class{ExchangERResult}} object with the following slots:
+Returns an \code{\linkS4class{ExchangERFit}} object with the following slots:
 \item{history}{a list containing the sampling history for
 parameters/summary statistics along the Markov chain.}
 \item{state}{a model object of the same class as the input, which
@@ -49,6 +49,6 @@ Carlo (MCMC).
 \itemize{
 \item \code{run_inference,ExchangERModel-method}: Specialization for \code{\linkS4class{ExchangERModel}}
 
-\item \code{run_inference,ExchangERResult-method}: Specialization for \code{\linkS4class{ExchangERResult}}
+\item \code{run_inference,ExchangERFit-method}: Specialization for \code{\linkS4class{ExchangERFit}}
 }}
 

@@ -17,7 +17,7 @@ NULL
 #' _most probable maximal matching sets_.
 #'
 #' @param x an \R object containing samples of clusterings. Currently, methods 
-#'   are defined for [`ExchangERResult-class`] objects, [`coda::mcmc`] objects 
+#'   are defined for [`ExchangERFit-class`] objects, [`coda::mcmc`] objects 
 #'   and [`base::matrix`] objects (where rows index samples and columns index 
 #'   cluster assignments for each record).
 #' @param ... further arguments passed to or from other methods.
@@ -90,10 +90,10 @@ mp_clusters.matrix <- function(x, rec_ids = NULL, ...)
 
 #' @rdname mp_clusters
 #' @export
-mp_clusters.ExchangERResult <- function(x, ...) {
+mp_clusters.ExchangERFit <- function(x, ...) {
   samples <- x@history$links
   if (is.null(samples))
-    stop("ExchangERResult does not contain history of the linkage structure along the chain")
+    stop("ExchangERFit does not contain history of the linkage structure along the chain")
   rec_ids <- x@state@rec_ids
   mp_clusters(samples, rec_ids, ...)
 }
@@ -115,7 +115,7 @@ mp_clusters.mcmc <- function(x, rec_ids=NULL, ...) {
 #' @param x an \R object containing samples of clusterings or a summary 
 #'   of the most probable clusters. Currently, methods are defined for 
 #'   `MPClusters` objects (as output by [`mp_clusters`]), 
-#'   [`ExchangERResult-class`] objects, [`coda::mcmc`] objects 
+#'   [`ExchangERFit-class`] objects, [`coda::mcmc`] objects 
 #'   and [`base::matrix`] objects (where rows index samples and columns index 
 #'   cluster assignments for each record).
 #' @param ... further arguments passed to or from other methods.
@@ -179,7 +179,7 @@ smp_clusters.matrix <- function(x, rec_ids=NULL, ...) {
 
 #' @rdname smp_clusters
 #' @export
-smp_clusters.ExchangERResult <- function(x, ...)
+smp_clusters.ExchangERFit <- function(x, ...)
 {
   mpc <- mp_clusters(x, ...)
   smp_clusters(mpc, ...)
@@ -197,15 +197,15 @@ smp_clusters.mcmc <- function(x, rec_ids=NULL, ...) {
 # #' Computes posterior match probabilities for a given subset of record pairs 
 # #' based on MCMC samples.
 # #' 
-# #' @param result a [`ExchangERResult-class`] object
+# #' @param result a [`ExchangERFit-class`] object
 # #' @param rec_ids.x,rec_ids.y vectors of identifiers which specify the record 
 # #'   pairs of interest. The vectors must be the same length, and they 
 # #'   conform to the record identifier format used in `result`.
 # #' @return a vector of pairwise match probabilities of the same length as 
 # #'   `rec_ids.x`.
 # pairwiseMatchProbability <- function(result, rec_ids.x, rec_ids.y) {
-#   if (!inherits(result, "ExchangERResult")) 
-#     stop("result must be a 'ExchangERResult' object")
+#   if (!inherits(result, "ExchangERFit")) 
+#     stop("result must be a 'ExchangERFit' object")
 #   if (length(rec_ids.x) != length(rec_ids.y))
 #     stop("rec_ids.x and rec_ids.y must be vectors of the same length")
 #   if (any(rec_ids.x == rec_ids.y))

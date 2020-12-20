@@ -29,21 +29,21 @@ NULL
 #' total number of entities (clusters) that are linked to at least one 
 #' record.}
 #' 
-setClass("ExchangERResult", 
+setClass("ExchangERFit", 
          slots = c(history = "list",
                    state = "ExchangERModel"))
 
-#' Function to concatenate two ExchangERResult objects
+#' Function to concatenate two ExchangERFit objects
 #' 
-#' @param resultA,resultB [`ExchangERResult-class`] objects. `resultB` must occur 
+#' @param resultA,resultB [`ExchangERFit-class`] objects. `resultB` must occur 
 #'   after `resultA` along the Markov chain. Additionally, the results must use 
 #'   the same `thin_interval`.
-#' @return an [`ExchangERResult-class`] object
+#' @return an [`ExchangERFit-class`] object
 #' 
 #' @importFrom coda mcmc
 #' @noRd
 combine_results <- function(resultA, resultB) {
-  # Assume that both inputs are instances of type 'ExchangERResult' and that 
+  # Assume that both inputs are instances of type 'ExchangERFit' and that 
   # they refer to the same data set & model
   
   mcparA <- attr(resultA@history, 'mcpar')
@@ -77,7 +77,7 @@ combine_results <- function(resultA, resultB) {
     hist_combined[[varname]] <- mcmc(history, start=mcparA[1], thin = mcparA[3])
   }
   
-  return(new("ExchangERResult", history=hist_combined, state=resultB@state))
+  return(new("ExchangERFit", history=hist_combined, state=resultB@state))
 }
 
 #' Run inference for a model
@@ -88,7 +88,7 @@ combine_results <- function(resultA, resultB) {
 #' 
 #' @param x an \R object representing a model or a model with sampling 
 #'   history. Currently, there are methods defined for [`ExchangERModel-class`] 
-#'   objects and [`ExchangERResult-class`] objects. Passing a model begins 
+#'   objects and [`ExchangERFit-class`] objects. Passing a model begins 
 #'   sampling from scratch, in which case a burn-in period is recommended. 
 #'   Passing a model with sampling history will resume inference, adding 
 #'   samples to the existing history.
@@ -102,7 +102,7 @@ combine_results <- function(resultA, resultB) {
 #'   applied.
 #' @param ... further arguments passed to or from other methods. 
 #' @return 
-#' Returns an [`ExchangERResult-class`] object with the following slots:
+#' Returns an [`ExchangERFit-class`] object with the following slots:
 #' \item{history}{a list containing the sampling history for 
 #'   parameters/summary statistics along the Markov chain.}
 #' \item{state}{a model object of the same class as the input, which 
@@ -161,9 +161,9 @@ setMethod("run_inference", signature(x = "ExchangERModel"),
     return(result)
   })
 
-#' @describeIn run_inference Specialization for [`ExchangERResult-class`]
+#' @describeIn run_inference Specialization for [`ExchangERFit-class`]
 #' @export
-setMethod("run_inference", signature(x = "ExchangERResult"), 
+setMethod("run_inference", signature(x = "ExchangERFit"), 
   function(x, n_samples, thin_interval=1, burnin_interval=0, ...) {
     # Resuming a previous chain
     if (burnin_interval != 0) 

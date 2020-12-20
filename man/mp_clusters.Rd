@@ -3,7 +3,7 @@
 \name{mp_clusters}
 \alias{mp_clusters}
 \alias{mp_clusters.matrix}
-\alias{mp_clusters.ExchangERResult}
+\alias{mp_clusters.ExchangERFit}
 \alias{mp_clusters.mcmc}
 \title{Most Probable Clusters}
 \usage{
@@ -11,13 +11,13 @@ mp_clusters(x, ...)
 
 \method{mp_clusters}{matrix}(x, rec_ids = NULL, ...)
 
-\method{mp_clusters}{ExchangERResult}(x, ...)
+\method{mp_clusters}{ExchangERFit}(x, ...)
 
 \method{mp_clusters}{mcmc}(x, rec_ids = NULL, ...)
 }
 \arguments{
 \item{x}{an \R object containing samples of clusterings. Currently, methods
-are defined for \code{\linkS4class{ExchangERResult}} objects, \code{\link[coda:mcmc]{coda::mcmc}} objects
+are defined for \code{\linkS4class{ExchangERFit}} objects, \code{\link[coda:mcmc]{coda::mcmc}} objects
 and \code{\link[base:matrix]{base::matrix}} objects (where rows index samples and columns index
 cluster assignments for each record).}
 
