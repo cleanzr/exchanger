@@ -169,6 +169,7 @@ ExchangERModel <- setClass("ExchangERModel",
                       ),
                       validity = .check_ExchangERModel)
 
+#' @importFrom utils capture.output
 setMethod("show", "ExchangERModel", function(object) {
   n_records <- length(object@rec_ids)
   n_files <- nlevels(object@file_ids)
