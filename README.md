@@ -39,7 +39,7 @@ Note that your system must be configured for R package development. See
 questions 1.2 and 1.3 in the [Rcpp
 FAQ](https://cran.r-project.org/package=Rcpp/vignettes/Rcpp-FAQ.pdf) or
 the [RStudio
-documentation](http://www.rstudio.com/ide/docs/packages/prerequisites)
+documentation](https://www.rstudio.com/ide/docs/packages/prerequisites)
 for details.
 
 ## Example
