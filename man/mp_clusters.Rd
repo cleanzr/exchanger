@@ -44,9 +44,9 @@ Given samples of clusterings, this function returns a list containing the
 }
 \note{
 The collection of most probable clusters is not a valid clustering, as
-records may appear in multiple clusters. To obtain a clustering that
-one can apply the \code{\link{smp_clusters}} function to the output of
-this function.
+records may appear in multiple clusters. To obtain a valid clustering
+(that satisfies transitivity constraints) one can apply the \code{\link{smp_clusters}}
+function to the output of this function.
 
 In Steorts et al. (2016), the most probable clusters are referred to as
 \emph{most probable maximal matching sets}.

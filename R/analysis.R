@@ -9,9 +9,9 @@ NULL
 #'
 #' @note
 #' The collection of most probable clusters is not a valid clustering, as 
-#' records may appear in multiple clusters. To obtain a clustering that 
-#' one can apply the [`smp_clusters`] function to the output of 
-#' this function. 
+#' records may appear in multiple clusters. To obtain a valid clustering 
+#' (that satisfies transitivity constraints) one can apply the [`smp_clusters`] 
+#' function to the output of this function. 
 #' 
 #' In Steorts et al. (2016), the most probable clusters are referred to as 
 #' _most probable maximal matching sets_.
