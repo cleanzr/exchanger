@@ -117,8 +117,6 @@ is.AttributeIndex <- function(x) inherits(x, "AttributeIndex")
 #' @keywords internal
 #' @noRd
 compute_close_values <- function(domain, probs, dist_fn, include_self) {
-  domSize <- length(domain)
-  
   close_values <- future_lapply(seq_along(domain), function(i) {
     exp_factors <- exp(-dist_fn(domain[i], domain))
     if (!include_self) { 
