@@ -86,13 +86,13 @@ shortcut for an attribute with a constant distance function.
 
 ``` r
 attr_params <- list(
-  "fname_c1" = Attribute(transform_dist_fn(Levenshtein(), threshold=3), 
+  fname_c1 = Attribute(transform_dist_fn(Levenshtein(), threshold=3), 
                          distort_prob_prior = unif_prior),
-  "lname_c1" = Attribute(transform_dist_fn(Levenshtein(), threshold=3), 
+  lname_c1 = Attribute(transform_dist_fn(Levenshtein(), threshold=3), 
                          distort_prob_prior = unif_prior),
-  "by" = CategoricalAttribute(distort_prob_prior = unif_prior),
-  "bm" = CategoricalAttribute(distort_prob_prior = unif_prior),
-  "bd" = CategoricalAttribute(distort_prob_prior = unif_prior)
+  by = CategoricalAttribute(distort_prob_prior = unif_prior),
+  bm = CategoricalAttribute(distort_prob_prior = unif_prior),
+  bd = CategoricalAttribute(distort_prob_prior = unif_prior)
 )
 ```
 
@@ -130,25 +130,25 @@ pred_pairs <- clusters_to_pairs(pred_clust)
 measures <- eval_report_pairs(true_pairs, pred_pairs, num_pairs=n_records*(n_records-1)/2)
 print(measures)
 #> $precision
-#> [1] 0.98
+#> [1] 1
 #> 
 #> $recall
 #> [1] 0.98
 #> 
 #> $specificity
-#> [1] 0.999992
+#> [1] 1
 #> 
 #> $sensitivity
 #> [1] 0.98
 #> 
 #> $f1score
-#> [1] 0.98
+#> [1] 0.989899
 #> 
 #> $accuracy
-#> [1] 0.999984
+#> [1] 0.999992
 #> 
 #> $balanced_accuracy
-#> [1] 0.989996
+#> [1] 0.99
 ```
 
 ## License
