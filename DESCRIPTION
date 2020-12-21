@@ -61,7 +61,6 @@ Collate:
     'PitmanYorRP.R'
     'RcppExports.R'
     'ShiftedNegBinomRV.R'
-    'UniformRP.R'
     'analysis.R'
     'data.R'
     'exchanger-package.R'

@@ -50,50 +50,7 @@ public:
   virtual int num_random() const = 0;
 };
 
-class UnifClustParams : public ClustParams {
-public:
-  virtual double prior_weight_new(int n_clusters) const;
-
-  /**
-   * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
-   * the CRP representation of the random partition. 
-   * @param clusterSize the size of the existing cluster
-   * @return a positive weight (not normalized)
-   */
-  virtual double prior_weight_existing(int clustSize) const;
-
-  /**
-   * Constructor doesn't require R objects, as there are no parameters
-   */
-  UnifClustParams() {}
-
-  /**
-   * Convert to an R representation
-   * @return a `RP` S4 object
-   */
-  Rcpp::S4 to_R() const;
-
-  /**
-   * Convert to an R vector representation
-   * @param includeFixed whether to include clustering parameters that are fixed
-   * @return a named numeric vector, where the names correspond to clustering parameters
-   */
-  virtual Rcpp::NumericVector to_R_vec(bool includeFixed=false) const;
-
-  /**
-   * Update the clustering parameters (if they're random)
-   * @param links reference to links container
-   */
-  virtual void update(Links &links);
-
-  /**
-   * Get the number of clustering parameters that are random (not fixed)
-   */
-  virtual int num_random() const;
-};
-
-
-class CouponClustParams : public UnifClustParams {
+class CouponClustParams : public ClustParams {
 private:
    int m_;
 public:
@@ -146,7 +103,7 @@ public:
 };
 
 
-class GenCouponClustParams : public UnifClustParams {
+class GenCouponClustParams : public ClustParams {
 private:
   boost::optional<ShiftedNegBinomRV> m_prior_;
   boost::optional<GammaRV> kappa_prior_;
@@ -202,7 +159,7 @@ public:
   int num_random() const;
 };
 
-class PitmanYorClustParams : public UnifClustParams {
+class PitmanYorClustParams : public ClustParams {
 private:
   boost::optional<GammaRV> alpha_prior_;
   boost::optional<BetaRV> d_prior_;

@@ -21,10 +21,6 @@ double GenCouponClustParams::prior_weight_new(int n_clusters) const
   return kappa_ * std::abs(m_  - n_clusters); 
 }
 
-double UnifClustParams::prior_weight_existing(int clusterSize) const { return 1.0; }
-
-double UnifClustParams::prior_weight_new(int n_clusters) const { return 1.0; }
-
 double PitmanYorClustParams::prior_weight_existing(int clusterSize) const
 { 
   return std::abs(clusterSize - d_);
@@ -66,10 +62,6 @@ void GenCouponClustParams::update(Links &links) {
     double pb = 1 - (1 - m_prior_.value().get_prob()) * std::pow(w, kappa_);
     m_ = R::rnbinom(sz, pb) + links.n_linked_ents();
   }
-}
-
-void UnifClustParams::update(Links &links) {
-  // Nothing to do
 }
 
 void PitmanYorClustParams::update(Links &links)
@@ -133,10 +125,6 @@ int PitmanYorClustParams::num_random() const {
   return alpha_prior_.has_value() + d_prior_.has_value();
 }
 
-int UnifClustParams::num_random() const {
-  return 0;
-}
-
 Rcpp::S4 CouponClustParams::to_R() const
 {
   Rcpp::S4 out("GeneralizedCouponRP");
@@ -157,11 +145,6 @@ Rcpp::S4 PitmanYorClustParams::to_R() const {
   Rcpp::S4 out("PitmanYorRP");
   out.slot("alpha") = alpha_;
   out.slot("d") = d_;
-  return out;
-}
-
-Rcpp::S4 UnifClustParams::to_R() const {
-  Rcpp::S4 out("UniformRP");
   return out;
 }
 
@@ -198,12 +181,6 @@ Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool includeFixed) const
   Rcpp::NumericVector out(values.begin(), values.end());
   Rcpp::CharacterVector out_names(names.begin(), names.end());
   out.attr("names") = out_names;
-  return out; 
-}
-
-Rcpp::NumericVector UnifClustParams::to_R_vec(bool includeFixed) const 
-{
-  Rcpp::NumericVector out(0);
   return out; 
 }
 
@@ -278,7 +255,7 @@ std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, con
   if (clust_prior.is("PitmanYorRP")) {
     clust_params_.reset(new PitmanYorClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("GeneralizedCouponRP")) {
-    // Sampling implementatoin differs depending on whether kappa is Inf
+    // Sampling implementation differs depending on whether kappa is Inf
     SEXP kappa_SEXP = clust_prior.slot("kappa");
     if (TYPEOF(kappa_SEXP) == REALSXP) {
       Rcpp::NumericVector kappa_vec = Rcpp::as<Rcpp::NumericVector>(kappa_SEXP);
@@ -290,8 +267,6 @@ std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, con
     } else {
       clust_params_.reset(new GenCouponClustParams(clust_params, clust_prior));  
     }
-  } else if (clust_prior.is("UniformRP")) {
-    clust_params_.reset(new UnifClustParams());
   } else {
     Rcpp::stop("Unrecognized clust_prior");
   }
