@@ -63,6 +63,7 @@ Collate:
     'RcppExports.R'
     'ShiftedNegBinomRV.R'
     'analysis.R'
+    'coreference_probs.R'
     'data.R'
     'exchanger-package.R'
     'extract.R'
