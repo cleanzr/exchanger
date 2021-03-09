@@ -147,6 +147,9 @@ int burnin_interval=0)
   Rcpp::IntegerMatrix hist_n_linked_ents(n_samples, 1);
   colnames(hist_n_linked_ents) = Rcpp::CharacterVector::create("n_linked_ents");
   
+  Rcpp::IntegerMatrix hist_distort_counts(n_samples, state.recs_.n_attributes() * state.recs_.n_files());
+  colnames(hist_distort_counts) = hist_distort_probs_nms;
+  
   Rcpp::NumericMatrix hist_clust_params;
   if (clust_params->num_random() > 0) {
     Rcpp::CharacterVector clust_param_names = clust_params->to_R_vec().names();
@@ -171,11 +174,12 @@ int burnin_interval=0)
       {
         // Update history using this sample
         Rcpp::IntegerVector links_R = state.links_.to_R();
-        Rcpp::IntegerVector n_distorted = state.recs_.R_n_distorted_per_attr();
         hist_links.row(sample_ctr) = links_R;
         hist_n_linked_ents(sample_ctr, 0) = state.links_.n_linked_ents();
         Rcpp::NumericVector distort_prob = state.distort_probs_.to_R();
         hist_distort_probs.row(sample_ctr) = distort_prob;
+        Rcpp::IntegerVector distort_counts = state.recs_.R_distorted_counts();
+        hist_distort_counts.row(sample_ctr) = distort_counts;
         if (hist_clust_params.ncol() > 0) {
           hist_clust_params.row(sample_ctr) = clust_params->to_R_vec();
         }
@@ -195,6 +199,7 @@ int burnin_interval=0)
   Rcpp::List history;
   history["links"] = hist_links;
   history["distort_probs"] = hist_distort_probs;
+  history["distort_counts"] = hist_distort_counts;
   history["n_linked_ents"] = hist_n_linked_ents;
   if (hist_clust_params.ncol() > 0) history["clust_params"] = hist_clust_params;
   result.slot("history") = history;

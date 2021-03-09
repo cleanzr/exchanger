@@ -23,14 +23,14 @@ bool Records::get_attribute_distortion(rec_id rid, attr_id aid) const
 
 int Records::n_distorted(file_id fid, attr_id aid) const 
 {
-  return distortion_counts_(fid, aid);
+  return distorted_counts_(fid, aid);
 }
 
 void Records::set_attribute_distortion(rec_id rid, attr_id aid, bool distorted) 
 {
   int &oldDist = attr_distortions_(aid, rid);
   file_id fid = get_file_id(rid);
-  distortion_counts_(fid, aid) += distorted - oldDist;
+  distorted_counts_(fid, aid) += distorted - oldDist;
   oldDist = distorted;
 }
 
@@ -39,11 +39,9 @@ Rcpp::IntegerMatrix Records::R_rec_distortions() const
   return Rcpp::wrap(attr_distortions_);
 }
 
-Rcpp::IntegerVector Records::R_n_distorted_per_attr() const 
+Rcpp::IntegerMatrix Records::R_distorted_counts() const 
 {
-  // Sum over files
-  arma::irowvec n_distorted_per_attr = arma::sum(distortion_counts_, 0);
-  return Rcpp::wrap(n_distorted_per_attr);
+  return Rcpp::wrap(distorted_counts_);
 }
 
 Rcpp::IntegerVector Records::R_n_distorted_per_rec() const 

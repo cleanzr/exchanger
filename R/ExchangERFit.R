@@ -26,6 +26,9 @@ NULL
 #'   \item{distort_probs}{a [`coda::mcmc`] matrix object recording 
 #'     the distortion probabilities for each attribute/file. Rows index samples 
 #'     along the Markov chain and columns index attributes/files.}
+#'   \item{distort_counts}{a [`coda::mcmc`] matrix object recording 
+#'     the number of distorted values for each attribute/file. Rows index 
+#'     samples along the Markov chain and columns index attributes/files.}
 #'   \item{n_linked_ents}{a [`coda::mcmc`] vector object recording the 
 #'     total number of entities (clusters) that are linked to at least one 
 #'     record.}
@@ -45,7 +48,7 @@ setMethod("show", "ExchangERFit", function(object) {
   n_samples <- end_iter - start_iter + thin
   
   # Compute effective sample size for particular variables, if present
-  valid_ess_varnames <- c("n_linked_ents", "distort_probs", "clust_params")
+  valid_ess_varnames <- c("n_linked_ents", "distort_probs", "distort_counts", "clust_params")
   ess <- list()
   for (varname in intersect(valid_ess_varnames, names(object@history))) {
     var <- object@history[[varname]]
