@@ -85,8 +85,10 @@ the small number of samples.
 ```{r}
 n_linked_ents <- extract(result, "n_linked_ents")
 distort_probs <- extract(result, "distort_probs")
+distort_counts <- extract(result, "distort_counts")
 plot(n_linked_ents)
 plot(distort_probs)
+plot(distort_counts)
 ```
 
 We can obtain a point estimate of the most likely linkage structure using the 

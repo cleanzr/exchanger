@@ -22,6 +22,9 @@ same integer value are assigned to the same entity.}
 \item{distort_probs}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording
 the distortion probabilities for each attribute/file. Rows index samples
 along the Markov chain and columns index attributes/files.}
+\item{distort_counts}{a \code{\link[coda:mcmc]{coda::mcmc}} matrix object recording
+the number of distorted values for each attribute/file. Rows index
+samples along the Markov chain and columns index attributes/files.}
 \item{n_linked_ents}{a \code{\link[coda:mcmc]{coda::mcmc}} vector object recording the
 total number of entities (clusters) that are linked to at least one
 record.}

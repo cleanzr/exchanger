@@ -21,7 +21,7 @@ private:
   const arma::ivec fids_;
   arma::imat attr_distortions_;
   const arma::ivec fsizes_;
-  arma::imat distortion_counts_;
+  arma::imat distorted_counts_;
 
   /**
    * Setter for the distortion indicator of a record attribute
@@ -106,7 +106,7 @@ public:
    * file/attribute. Rows correspond to files and columns correspond to 
    * attributes.
    */
-  Rcpp::IntegerVector R_n_distorted_per_attr() const;
+  Rcpp::IntegerMatrix R_distorted_counts() const;
 
   /**
    * TODO
@@ -130,11 +130,11 @@ public:
       attr_distortions_(attr_distortions), 
       fsizes_(fsizes)
   {
-    distortion_counts_ = arma::zeros<arma::imat>(n_files(), n_attributes());
+    distorted_counts_ = arma::zeros<arma::imat>(n_files(), n_attributes());
     for (rec_id rid=0; rid < n_records(); rid++) {
       file_id fid = fids_[rid];
       for (attr_id aid=0; aid < n_attributes(); aid++) {
-        if (get_attribute_distortion(rid, aid)) { distortion_counts_(fid, aid) += 1; }
+        if (get_attribute_distortion(rid, aid)) { distorted_counts_(fid, aid) += 1; }
       }
     }
   }
