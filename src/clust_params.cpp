@@ -1,7 +1,7 @@
 #include "clust_params.h"
 #include <RcppArmadillo.h>
 
-double CouponClustParams::prior_weight_existing(int clusterSize) const
+double CouponClustParams::prior_weight_existing(int cluster_size) const
 { 
   return 1.0; 
 }
@@ -11,9 +11,9 @@ double CouponClustParams::prior_weight_new(int n_clusters) const
   return std::abs(m_  - n_clusters); 
 }
 
-double GenCouponClustParams::prior_weight_existing(int clusterSize) const
+double GenCouponClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return clusterSize + kappa_; 
+  return cluster_size + kappa_; 
 }
 
 double GenCouponClustParams::prior_weight_new(int n_clusters) const
@@ -21,13 +21,22 @@ double GenCouponClustParams::prior_weight_new(int n_clusters) const
   return kappa_ * std::abs(m_  - n_clusters); 
 }
 
-double PitmanYorClustParams::prior_weight_existing(int clusterSize) const
+double PitmanYorClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return std::abs(clusterSize - d_);
+  return std::abs(cluster_size - d_);
 }
 
 double PitmanYorClustParams::prior_weight_new(int n_clusters) const { 
   return alpha_ + d_ * n_clusters; 
+}
+
+double ESCNBClustParams::prior_weight_existing(int cluster_size) const
+{ 
+  return std::abs(cluster_size + r_);
+}
+
+double ESCNBClustParams::prior_weight_new(int n_clusters) const { 
+  return (n_clusters + 1) * r_ * std::pow(1 - p_, r_); 
 }
 
 void CouponClustParams::update(Links &links) {
@@ -113,6 +122,33 @@ void PitmanYorClustParams::update(Links &links)
   }
 }
 
+void ESCNBClustParams::update(Links &links)
+{
+  int num_v_success = 0;
+  auto n_clusters = links.n_linked_ents();
+  auto n_records = links.n_records();
+
+  if (p_prior_.has_value()) {
+    p_ = R::rbeta(n_clusters * r_ + p_prior_.value().get_shape1(), 
+                  n_records + p_prior_.value().get_shape2());
+  }
+  if (r_prior_.has_value()) {
+    // Generate v auxiliary variables
+    int clust_size;
+    double prob_j;
+    for (auto const &clust : links.inverse_index_) {
+      clust_size = clust.second.size();
+      for (int j = 1; j <= clust_size - 2; j++) {
+        prob_j = (r_)/(r_ + j);
+        num_v_success += (R::unif_rand() < prob_j);
+      }
+    }
+    double a = r_prior_.value().get_shape() + n_clusters + num_v_success;
+    double scl = 1.0 / (r_prior_.value().get_rate() - n_clusters * std::log(p_));
+    r_ = R::rgamma(a, scl);
+  }
+}
+
 int CouponClustParams::num_random() const {
   return 0;
 }
@@ -123,6 +159,10 @@ int GenCouponClustParams::num_random() const {
 
 int PitmanYorClustParams::num_random() const {
   return alpha_prior_.has_value() + d_prior_.has_value();
+}
+
+int ESCNBClustParams::num_random() const {
+  return p_prior_.has_value() + r_prior_.has_value();
 }
 
 Rcpp::S4 CouponClustParams::to_R() const
@@ -148,11 +188,18 @@ Rcpp::S4 PitmanYorClustParams::to_R() const {
   return out;
 }
 
-Rcpp::NumericVector CouponClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::S4 ESCNBClustParams::to_R() const {
+  Rcpp::S4 out("ESCNBRP");
+  out.slot("r") = r_;
+  out.slot("p") = p_;
+  return out;
+}
+
+Rcpp::NumericVector CouponClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (includeFixed) {
+  if (include_fixed) {
     names.push_back("kappa");
     values.push_back(R_PosInf);
     names.push_back("m");
@@ -165,15 +212,15 @@ Rcpp::NumericVector CouponClustParams::to_R_vec(bool includeFixed) const
   return out; 
 }
 
-Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (kappa_prior_.has_value() || includeFixed) {
+  if (kappa_prior_.has_value() || include_fixed) {
     names.push_back("kappa");
     values.push_back(kappa_);
   }
-  if (m_prior_.has_value() || includeFixed) {
+  if (m_prior_.has_value() || include_fixed) {
     names.push_back("m");
     values.push_back(m_);
   }
@@ -184,17 +231,36 @@ Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool includeFixed) const
   return out; 
 }
 
-Rcpp::NumericVector PitmanYorClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::NumericVector PitmanYorClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (alpha_prior_.has_value() || includeFixed) {
+  if (alpha_prior_.has_value() || include_fixed) {
     names.push_back("alpha");
     values.push_back(alpha_);
   }
-  if (d_prior_.has_value() || includeFixed) {
+  if (d_prior_.has_value() || include_fixed) {
     names.push_back("d");
     values.push_back(d_);
+  }
+
+  Rcpp::NumericVector out(values.begin(), values.end());
+  Rcpp::CharacterVector out_names(names.begin(), names.end());
+  out.attr("names") = out_names;
+  return out; 
+}
+
+Rcpp::NumericVector ESCNBClustParams::to_R_vec(bool include_fixed) const 
+{
+  std::vector<std::string> names;
+  std::vector<double> values;
+  if (p_prior_.has_value() || include_fixed) {
+    names.push_back("p");
+    values.push_back(p_);
+  }
+  if (r_prior_.has_value() || include_fixed) {
+    names.push_back("r");
+    values.push_back(r_);
   }
 
   Rcpp::NumericVector out(values.begin(), values.end());
@@ -249,11 +315,34 @@ GenCouponClustParams::GenCouponClustParams(const Rcpp::S4 &clust_params, const R
   kappa_ = clust_params.slot("kappa");
 }
 
+ESCNBClustParams::ESCNBClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
+{
+  // Read prior
+  SEXP p_SEXP = clust_prior.slot("p");
+  if (TYPEOF(p_SEXP) == S4SXP) {
+    Rcpp::S4 p_S4 = Rcpp::as<Rcpp::S4>(p_SEXP);
+    p_prior_ = BetaRV(p_S4);
+  }
+
+  SEXP r_SEXP = clust_prior.slot("r");
+  if (TYPEOF(r_SEXP) == S4SXP) {
+    Rcpp::S4 r_S4 = Rcpp::as<Rcpp::S4>(r_SEXP);
+    r_prior_ = GammaRV(r_S4);
+  }
+
+  // Read parameter values
+  p_ = clust_params.slot("p");
+  r_ = clust_params.slot("r");
+}
+
+
 std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
 {
   std::shared_ptr<ClustParams> clust_params_;
   if (clust_prior.is("PitmanYorRP")) {
     clust_params_.reset(new PitmanYorClustParams(clust_params, clust_prior));
+  } else if (clust_prior.is("ESCNBRP")) {
+    clust_params_.reset(new ESCNBClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("GeneralizedCouponRP")) {
     // Sampling implementation differs depending on whether kappa is Inf
     SEXP kappa_SEXP = clust_prior.slot("kappa");

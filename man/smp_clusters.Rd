@@ -50,7 +50,7 @@ to Graphical Record Linkage and Deduplication. \emph{JASA} \strong{111},
 1660–1672 (2016).
 }
 \seealso{
-The \code{\link[clevr:clustering_representations]{clevr::clusters_to_pairs}} and \code{\link[clevr:clustering_representations]{clevr::clusters_to_membership}}
+The \code{\link[clevr:clusters_to_pairs]{clevr::clusters_to_pairs}} and \code{\link[clevr:clusters_to_membership]{clevr::clusters_to_membership}}
 functions are useful for converting the output of this function to different
 clustering representations.
 }
