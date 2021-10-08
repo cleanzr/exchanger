@@ -46,7 +46,7 @@ Rcpp::List membership_to_clusters(const Rcpp::IntegerVector &membership)
   // Convert to List of IntegerVectors: one for each cluster
   Rcpp::List out(clusters.size());
   size_t i = 0;
-  for (auto const cluster : clusters) {
+  for (auto const &cluster : clusters) {
     Rcpp::IntegerVector c = Rcpp::wrap(cluster.second);
     out[i] = c;
     i++;
@@ -70,7 +70,7 @@ Rcpp::List mp_clusters(const Rcpp::IntegerMatrix &samples) {
     Rcpp::IntegerMatrix::ConstRow memb = samples.row(r);
     auto clusters = membership_to_clusters(memb.cbegin(), memb.cend());
     
-    for (auto const cluster : clusters) { cluster_freqs[cluster.second]++; }
+    for (auto const &cluster : clusters) { cluster_freqs[cluster.second]++; }
   }
   
   // Find most probable clusters (pointer to cluster_freqs) for each record
@@ -125,7 +125,7 @@ Rcpp::List smp_clusters(const Rcpp::List& mp_clusters) {
   
   out = Rcpp::List(smp_clusters.size());
   size_t i = 0;
-  for (auto const smpc : smp_clusters) {
+  for (auto const &smpc : smp_clusters) {
     Rcpp::IntegerVector cluster = Rcpp::wrap(smpc.second);
     out[i] = cluster;
     i++;

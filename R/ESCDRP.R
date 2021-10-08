@@ -1,7 +1,7 @@
 #' @include RP.R
 NULL
 
-.check_ESCNB <- function(object) {
+.check_ESCD <- function(object) {
   errors = character()
   if (!is_scalar(object@prob) && !is.BetaRV(object@prob)) {
     errors <- c(errors, "prob must be a scalar or a BetaRV")
@@ -9,31 +9,37 @@ NULL
   if (!is_scalar(object@size) & !is.GammaRV(object@size)) {
     errors <- c(errors, "size must be a scalar or a GammaRV")
   }
+  if (!is_scalar(object@alpha)) {
+    errors <- c(errors, "alpha must be a scalar")
+  }
   if (is_numeric_scalar(object@prob)) {
-    if (object@prob <= 0 || object@prob > 1)
-      errors <- c(errors, "prob must be on the interval (0, 1]")
+    if (object@prob < 0 || object@prob > 1)
+      errors <- c(errors, "prob must be on the interval [0, 1]")
   }
   if (is_numeric_scalar(object@size)) {
     if (object@size <= 0) {
       errors <- c(errors, "size must be strictly positive")
     }  
   }
+  if (is_numeric_scalar(object@alpha)) {
+    if (object@alpha <= 0) {
+      errors <- c(errors, "alpha must be strictly positive")
+    }
+  }
   if (length(errors)==0) TRUE else errors
 }
 
-setClass("ESCNBRP", 
-         slots = c(prob="ANY", size="ANY"), 
-         validity=.check_ESCNB, contains = "RP")
+setClass("ESCDRP", 
+         slots = c(prob="ANY", size="ANY", alpha="numeric"), 
+         validity=.check_ESCD, contains = "RP")
 
-#' ESC-NB Random Partition
+#' ESC-D Random Partition
 #' 
 #' @description
-#' Represents an ESC-NB (Exchangeable Sequences of Clusters-Negative Binomial) 
-#' random partition.
-#' 
-#' @details 
-#' An ESC model where the cluster sizes are drawn from a shifted negative 
-#' binomial distribution (with support on the positive integers). 
+#' An ESC model where the cluster sizes are drawn from a distribution on the 
+#' positive integers, which is itself drawn from a Dirichlet process with a 
+#' shifted negative binomial base distribution with concentration parameter 
+#' \eqn{`alpha`}. 
 #' The parameterization of the shifted negative binomial distribution matches 
 #' [`stats::NegBinomial`]. 
 #' For \eqn{`size` = n} and \eqn{`prob` = p}, the probability mass associated 
@@ -47,7 +53,9 @@ setClass("ESCNBRP",
 #' @param size Target for number of successful trials, or dispersion parameter 
 #'   (the shape parameter of the gamma mixing distribution). Must be a positive 
 #'   numeric scalar or a [`GammaRV`] object.
-#' @return The constructor `ESCNBRP` returns a `ESCNBRP` object which is a 
+#' @param alpha Concentration parameter for the Dirichlet process. Must be a 
+#'   positive numeric scalar.
+#' @return The constructor `ESCDRP` returns a `ESCDRP` object which is a 
 #'   subclass of [`RP-class`].
 #' 
 #' @seealso 
@@ -60,25 +68,26 @@ setClass("ESCNBRP",
 #' Statistical Association_, DOI: 10.1080/01621459.2020.1841647.
 #' 
 #' @export
-ESCNBRP <- function(prob, size) {
-  new("ESCNBRP", prob=prob, size=size)
+ESCDRP <- function(prob, size, alpha) {
+  new("ESCDRP", prob=prob, size=size, alpha=alpha)
 }
 
-setMethod("format", "ESCNBRP", function(x, ...) {
+setMethod("format", "ESCDRP", function(x, ...) {
   prob <- format(x@prob, ...)
   size <- format(x@size, ...)
-  paste0("ESCNBRP(prob=", prob, ", size=", size, ")")
+  alpha <- format(x@alpha, ...)
+  paste0("ESCDRP(prob=", prob, ", size=", size, ", alpha=", alpha, ")")
 })
 
-setMethod("show", "ESCNBRP", function(object) {
+setMethod("show", "ESCDRP", function(object) {
   writeLines(format(object))
   invisible(object)
 })
 
 #' @param x An \R object.
-#' @return `is.ESCNBRP` returns TRUE if the argument is a `ESCNBRP` object and 
+#' @return `is.ESCDRP` returns TRUE if the argument is a `ESCDRP` object and 
 #'   FALSE otherwise.
 #' 
 #' @noRd
 #' @keywords internal
-is.ESCNBRP <- function(x) inherits(x, "ESCNBRP")
+is.ESCDRP <- function(x) inherits(x, "ESCDRP")

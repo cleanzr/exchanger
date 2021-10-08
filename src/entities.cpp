@@ -130,7 +130,7 @@ std::pair<Rcpp::IntegerVector, Rcpp::IntegerMatrix> Entities::to_R() const {
 
 void Entities::update_distributions() {
   attr_id aid = 0;
-  for (auto const v : inverse_index_) {
+  for (auto const &v : inverse_index_) {
     AttributePrior* attributePrior = attr_priors_[aid].get();
     if (attributePrior->isDirichlet_) 
     {
@@ -139,7 +139,7 @@ void Entities::update_distributions() {
     
       auto priorParamPtr = attributePrior->param_vec_.begin();
       auto concentrationPtr = concentration.begin();
-      for (auto const eids : v) {
+      for (auto const &eids : v) {
         *concentrationPtr = eids.size() + *priorParamPtr;
         concentrationPtr++;
         priorParamPtr++;
