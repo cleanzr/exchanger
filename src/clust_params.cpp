@@ -2,6 +2,8 @@
 #include "dirichlet.h"
 #include <RcppArmadillo.h>
 #include <map>
+#include <limits>
+#include <iterator>
 
 double CouponClustParams::prior_weight_existing(int cluster_size) const
 { 
@@ -43,7 +45,13 @@ double ESCNBClustParams::prior_weight_new(int n_clusters) const {
 
 double ESCDClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return (cluster_size + 1) * mu_[cluster_size] / mu_[cluster_size - 1];
+  // Probability associated with the current cluster size (note mu_ is 
+  // zero-indexed)
+  double mu_current_size = mu_[cluster_size - 1];
+  // Avoid division by zero
+  double min_double = std::numeric_limits<double>::min();
+  mu_current_size = mu_current_size < min_double ? min_double : mu_current_size;
+  return (cluster_size + 1) * mu_[cluster_size] / mu_current_size;
 }
 
 double ESCDClustParams::prior_weight_new(int n_clusters) const { 
@@ -173,6 +181,8 @@ void ESCNBClustParams::update(Links &links)
 
 void ESCDClustParams::update(Links &links)
 { 
+  auto n_records = links.n_records();
+  
   // Frequency of each cluster size
   std::map<int, int> clust_size_freq;
   int clust_size;
@@ -252,30 +262,41 @@ void ESCDClustParams::update(Links &links)
   }
   
   // Update mu
-  std::vector<double> c_vec(max_clust_size + 1);  // concentration vector
-  clust_size = 1;
-  double c_prior_sum = 0.0;
-  for (auto &x : c_vec) {
-    // Prior contribution
-    if (clust_size > max_clust_size) {
-      // Element corresponding to remaining cluster sizes is computed differently
-      x = alpha_ - c_prior_sum;
-      break; // No contribution from observations
+  // Vector of concentration parameters for each possible cluster size. Beyond 
+  // a particular cluster size, the parameters are effectively zero (to machine 
+  // precision) and we stop computing them.
+  std::vector<double> c_vec(n_records + 1);
+  double c_prior_sum = 0.0;  // sum of prior contributions to the concentration parameters
+  double min_float = std::numeric_limits<double>::min();
+  double prev_c = std::numeric_limits<double>::max();  // previous concentration parameter value
+  auto c_vec_it = c_vec.begin();
+  for (; c_vec_it != c_vec.end(); ++c_vec_it) {
+    clust_size = std::distance(c_vec.begin(), c_vec_it) + 1;
+    
+    // Contribution from prior
+    if (clust_size > n_records) {
+      // Last element
+      *c_vec_it = std::abs(alpha_ - c_prior_sum);
+      break; // No contribution from observations so can break now
     } else {
-      // alpha times negative binomial pmf
-      x = alpha_ * R::dnbinom(clust_size, size_, prob_, 0);
-      c_prior_sum += x;
+      // alpha times shifted negative binomial pmf
+      *c_vec_it = alpha_ * R::dnbinom(clust_size - 1, size_, prob_, 0);
+      c_prior_sum += *c_vec_it;
     }
 
     // Contribution from observations
     auto got = clust_size_freq.find(clust_size);
     if (got != clust_size_freq.end()) {
-      x += got->second;
+      *c_vec_it += got->second;
     }
-
-    clust_size++;
+    
+    if (*c_vec_it <= min_float && clust_size > max_clust_size) {
+      // All remaining elements are effectively zero, so treat this element as 
+      // the last
+      break;
+    }
   }
-  mu_ = rdirichlet(c_vec.begin(), c_vec.end());
+  mu_ = rdirichlet(c_vec.begin(), c_vec_it);
 }
 
 int CouponClustParams::num_random() const {
