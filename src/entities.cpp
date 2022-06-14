@@ -269,13 +269,13 @@ double weightEntityValue(val_id e_vid, attr_id aid, const Records &recs, const D
           if (ctrDisagree == 1) {
             weight *= 1.0 / b;
           } else {
-            weight *= 1.0 / (1.0 - 1.0 / ctrDisagree + b);
+            weight *= 1.0 / (1.0 + (b - 1.0) / ctrDisagree);
           }
           auto got = ctrDisagreeValue.find(r_vid);
           if (got != ctrDisagreeValue.end()) {
             // Seen this r_vid before
             got->second++;
-            weight *= 1.0 - 1.0 / got->second + b * index->get_distortion_prob(e_vid, r_vid);
+            weight *= 1.0 + (b * index->get_distortion_prob(e_vid, r_vid) - 1.0) / got->second;
           } else {
             // Seeing this r_vid for the first time
             ctrDisagreeValue[r_vid] = 1;

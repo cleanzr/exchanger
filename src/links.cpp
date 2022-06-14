@@ -247,7 +247,7 @@ double likelihoodWeightExisting(rec_id rid, ent_id eid, const std::unordered_set
               // Guard against floating point rounding errors
               weight *= 1.0 / b;
             } else {
-              weight *= 1.0 / (1.0 - 1.0/ctrDistorted + b);
+              weight *= 1.0 / (1.0 + (b - 1.0)/ctrDistorted);
             }
             auto got = ctrDistortedValues.find(linked_rvid);
             if (got == ctrDistortedValues.end()) {
@@ -255,7 +255,7 @@ double likelihoodWeightExisting(rec_id rid, ent_id eid, const std::unordered_set
               weight *= b * index->get_distortion_prob(e_vid, linked_rvid);
             } else {
               got->second++;
-              weight *= 1.0 - 1.0 / got->second + b * index->get_distortion_prob(e_vid, linked_rvid);
+              weight *= 1.0 + (b * index->get_distortion_prob(e_vid, linked_rvid) - 1.0) / got->second;
             }
           }
         }
