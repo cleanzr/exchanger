@@ -33,8 +33,9 @@ distance of \code{Inf} whenever \eqn{x} is unlikely to be a distortion of
 \eqn{y}. This can be achieved by wrapping a distance function in
 \code{\link{transform_dist_fn}}.}
 
-\item{distort_prob_prior}{A \code{\link{BetaRV}} object. Specifies the prior
-on the distortion probability for the attribute.}
+\item{distort_prob_prior}{A \code{\link{BetaRV}} object or numeric scalar. Specifies
+the prior on the distortion probability for the attribute. If a numeric
+scalar is passed, the prior is a point mass at that value.}
 
 \item{distort_dist_prior}{A \code{\link{DirichletProcess}} object. Specifies
 the prior on the distortion distribution for a record value \eqn{x}
