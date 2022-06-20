@@ -94,8 +94,24 @@ setGeneric("var", function(x, ...) standardGeneric("var"),
 #' 
 #' @examples
 #' x <- BetaRV(1, 1)
-#' sd(x)
+#' drv(x)
 #' 
 #' @export
 setGeneric("drv", function(x, rv, log, ...) standardGeneric("drv"), 
            signature = c("x", "rv"))
+
+#' Generate a Random Variable
+#'
+#' @param rv a [`RV-class`] object
+#' @param ... other parameters passed on to other methods.
+#' 
+#' @return 
+#' Returns the generated value of the random variable.
+#' 
+#' @examples
+#' x <- BetaRV(1, 1)
+#' rrv(x)
+#' 
+#' @export
+setGeneric("rrv", function(rv, ...) standardGeneric("rrv"), 
+           signature = c("rv"))

@@ -90,3 +90,9 @@ setMethod("var", signature(x = "BetaRV"),
 #' @export
 setMethod("drv", signature(x = "numeric", rv = "BetaRV"), 
   function(x, rv, log=FALSE, ...) dbeta(x, rv@shape1, rv@shape2, log=log))
+
+#' @describeIn rrv Specialization for [`BetaRV`]
+#' @importFrom stats rbeta
+#' @export
+setMethod("rrv", signature(rv = "BetaRV"), 
+          function(rv, ...) rbeta(1, shape1=rv@shape1, shape2=rv@shape2))

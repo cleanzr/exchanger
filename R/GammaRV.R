@@ -88,3 +88,9 @@ setMethod("var", signature(x = "GammaRV"),
 #' @export
 setMethod("drv", signature(x = "numeric", rv = "GammaRV"), 
   function(x, rv, log=FALSE, ...) dgamma(x, shape=rv@shape, rate=rv@rate, log=log))
+
+#' @describeIn rrv Specialization for [`GammaRV`]
+#' @importFrom stats rgamma
+#' @export
+setMethod("rrv", signature(rv = "GammaRV"), 
+  function(rv, ...) rgamma(1, shape=rv@shape, rate=rv@rate))

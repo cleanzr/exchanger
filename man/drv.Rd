@@ -42,6 +42,6 @@ Computes the density of a random variable at a point
 
 \examples{
 x <- BetaRV(1, 1)
-sd(x)
+drv(x)
 
 }

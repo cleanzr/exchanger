@@ -60,6 +60,7 @@ Collate:
     'ESCNBRP.R'
     'ExchangERModel.R'
     'ExchangERFit.R'
+    'sample_ep.R'
     'GeneralizedCouponRP.R'
     'PitmanYorRP.R'
     'RcppExports.R'
