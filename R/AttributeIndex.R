@@ -118,21 +118,22 @@ is.AttributeIndex <- function(x) inherits(x, "AttributeIndex")
 #' @noRd
 compute_close_values <- function(domain, probs, dist_fn, include_self) {
   close_values <- future_lapply(seq_along(domain), function(i) {
-    exp_factors <- exp(-dist_fn(domain[i], domain))
+    dists <- dist_fn(domain[i], domain)
     if (!include_self) { 
-      exp_factors[i] <- 0.0 # exclude i from the distortion distribution
+      dists[i] <- Inf # exclude i from the distortion distribution
     }
-    thres_dist_val_ids <- which(exp_factors > 0.0)
-    #distort_probs <- probs[thres_dist_val_ids] * exp_factors[thres_dist_val_ids]
-    distort_probs <- exp_factors[thres_dist_val_ids]
-    if (!include_self) {
-      max_exp_factor <- ifelse(length(thres_dist_val_ids) == 0, 0.0, max(distort_probs))
-    } else {
-      max_exp_factor <- 1.0
-    }
+    min_dist <- min(dists)
+    finite_dist_val_ids <- which(is.finite(dists))
+    dists <- dists[finite_dist_val_ids]
+    max_dist <- if (length(dists)) max(dists) else NA
+    #distort_probs <- probs[finite_dist_val_ids] * exp(-dists)
+    distort_probs <- exp(-dists)
     distort_probs <- distort_probs / sum(distort_probs)
-    return(list(valIds=thres_dist_val_ids, probs=distort_probs, max_exp_factor=max_exp_factor))
+    return(list(valIds=finite_dist_val_ids, probs=distort_probs, min_dist=min_dist, max_dist=max_dist))
   }, future.seed = TRUE)
-  max_exp_factor <- sapply(close_values, function(x) x$max_exp_factor)
+  min_dists <- sapply(close_values, function(x) x$min_dist) 
+  max_dists <- sapply(close_values, function(x) x$max_dist)
+  max_dist <- if (all(is.na(max_dists))) 0 else max(max_dists, na.rm=TRUE)
+  max_exp_factor <- ifelse(is.finite(min_dists), exp(-0.5*min_dists/max_dist), 0)
   return(list(close_values=close_values, max_exp_factor=max_exp_factor))
 }
