@@ -1,5 +1,6 @@
 #include "links.h"
 #include "clust_params.h"
+#include "distort_dist_concs.h"
 #include <RcppArmadillo.h>
 
 void Links::set_link(rec_id rid, ent_id eid) {
@@ -218,6 +219,7 @@ double logLikelihoodWeightExisting(
   const std::unordered_set<rec_id> &linked_rids, 
   const Records &recs, 
   const Entities &ents, 
+  const DistortDistConcs &distort_dist_concs, 
   const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
 ) 
 {
@@ -245,7 +247,7 @@ double logLikelihoodWeightExisting(
 
     // Posterior counts given other records linked to this entity (for 
     // attribute values that are observed and distorted)
-    double b = index->dirichlet_concentration();
+    double b = distort_dist_concs.get(aid);
     if (R_FINITE(b)) // This also guarantees index->exclude_entity_value() is TRUE, checked elsewhere
     {
       for (auto const &linked_rid : linked_rids) 
@@ -285,18 +287,25 @@ double logLikelihoodWeightExisting(
   return log_weight;
 }
 
-val_id rejectionSampleConstant(val_id r_vid, const IndexNonUniformDiscreteDist* distribution, 
-  const AbstractAttributeIndex* index) 
+val_id rejectionSampleConstant(
+  val_id r_vid, 
+  const IndexNonUniformDiscreteDist* distribution, 
+  const AbstractAttributeIndex* index
+) 
 {
   val_id e_vid;
   double ratio;
   bool accepted = false;
-  while (!accepted) {
+  while (!accepted) 
+  {
     e_vid = distribution->draw();
-    if (e_vid == r_vid) {
+    if (e_vid == r_vid) 
+    {
       // ratio = 0.0
       continue;
-    } else {
+    } 
+    else 
+    {
       ratio = index->get_distortion_prob(e_vid, r_vid) / index->get_max_distortion_prob(r_vid);
     }
     if (R::unif_rand() < ratio) { accepted = true; }
@@ -341,6 +350,7 @@ double logLikelihoodWeightNew(
 void Links::update_link(
   rec_id rid, Entities &ents, 
   const Records &recs, 
+  const DistortDistConcs &distort_dist_concs,
   std::shared_ptr<ClustParams> clust_params, 
   const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
 ) 
@@ -365,7 +375,7 @@ void Links::update_link(
     weights[i] = std::log(clust_params->prior_weight_existing(n_records(eid) - (eid == old_linked_eid)));
     // Contribution from likelihood
     const auto &linked_rids = get_record_ids(eid);
-    log_weight = logLikelihoodWeightExisting(rid, eid, linked_rids, recs, ents, attr_indices);
+    log_weight = logLikelihoodWeightExisting(rid, eid, linked_rids, recs, ents, distort_dist_concs, attr_indices);
 #ifdef CHECK_WEIGHTS
     if (log_weight > 0 && !std::isfinite(log_weight)) { 
       std::string message = "invalid log-weight " +  std::to_string(log_weight) + " on new entity for record " + std::to_string(rid); 
@@ -464,11 +474,16 @@ void Links::update_link(
   set_link(rid, new_eid);
 }
 
-void Links::update(Entities &ents, const Records &recs, std::shared_ptr<ClustParams> clust_params,
-  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices)
+void Links::update(
+  Entities &ents, 
+  const Records &recs, 
+  const DistortDistConcs &distort_dist_concs,
+  std::shared_ptr<ClustParams> clust_params,
+  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
+)
 {
   for (rec_id rid=0; rid < recs.n_records(); rid++) 
   {
-    update_link(rid, ents, recs, clust_params, attr_indices);
+    update_link(rid, ents, recs, distort_dist_concs, clust_params, attr_indices);
   }
 }

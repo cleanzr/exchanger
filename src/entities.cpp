@@ -1,5 +1,7 @@
 #include "entities.h"
 #include "dirichlet.h"
+#include "distort_dist_concs.h"
+#include <memory>
 
 void Entities::add_inverted(attr_id aid, val_id vid, ent_id eid) 
 {
@@ -236,6 +238,7 @@ double logWeightEntityValue(
   attr_id aid, 
   const Records &recs, 
   const DistortProbs &distort_probs, 
+  const DistortDistConcs &distort_dist_concs,
   const std::unordered_set<rec_id> &linked_rids, 
   const AbstractAttributeIndex *index, 
   IndexNonUniformDiscreteDist *distribution
@@ -269,7 +272,7 @@ double logWeightEntityValue(
       else 
       {
         log_weight += std::log(eff_dist_prob);
-        double b = index->dirichlet_concentration();
+        double b = distort_dist_concs.get(aid);
         if (R_FINITE(b)) { // This also guarantees index->exclude_entity_value() is TRUE, checked elsewhere
           ctr_disagree++;
           log_weight += -std::log(ctr_disagree - 1 + b);
@@ -296,6 +299,7 @@ val_id drawEntityValueSequential(
   attr_id aid, 
   const Records &recs, 
   const DistortProbs &distort_probs, 
+  const DistortDistConcs &distort_dist_concs,
   const std::unordered_set<rec_id> &linked_rids, 
   const AbstractAttributeIndex *index, 
   IndexNonUniformDiscreteDist *distribution
@@ -311,7 +315,7 @@ val_id drawEntityValueSequential(
   std::vector<double> weights(index->domain_size());
   for (e_vid = 0; e_vid < index->domain_size(); e_vid++) 
   {
-    log_weight = logWeightEntityValue(e_vid, aid, recs, distort_probs, linked_rids, index, distribution);
+    log_weight = logWeightEntityValue(e_vid, aid, recs, distort_probs, distort_dist_concs, linked_rids, index, distribution);
 #ifdef CHECK_WEIGHTS
     if (log_weight > 0 && !std::isfinite(log_weight)) { 
       std::string message = "invalid log-weight " + std::to_string(log_weight) + " detected when updating entity attribute " + std::to_string(aid);
@@ -348,6 +352,7 @@ val_id drawEntityValueIndex(
   attr_id aid, 
   const Records &recs, 
   const DistortProbs &distort_probs, 
+  const DistortDistConcs &distort_dist_concs,
   const std::unordered_set<rec_id> &linked_rids, 
   const AbstractAttributeIndex *index, 
   IndexNonUniformDiscreteDist *distribution
@@ -390,7 +395,7 @@ val_id drawEntityValueIndex(
 #endif
   for (auto &vw : vid_weights) 
   {
-    log_weight = logWeightEntityValue(vw.first, aid, recs, distort_probs, linked_rids, index, distribution);
+    log_weight = logWeightEntityValue(vw.first, aid, recs, distort_probs, distort_dist_concs, linked_rids, index, distribution);
 #ifdef CHECK_WEIGHTS
     if (log_weight > 0 && !std::isfinite(log_weight)) { 
       std::string message = "invalid log-weight " + std::to_string(log_weight) + " detected when updating entity attribute " + std::to_string(aid);
@@ -426,25 +431,36 @@ val_id drawEntityValueIndex(
 }
 
 
-void Entities::update_attributes(const Links& links, const Records& recs, 
-  const DistortProbs& distort_probs, const Cache& cache) {
+void Entities::update_attributes(
+  const Links &links, 
+  const Records &recs, 
+  const DistortProbs &distort_probs, 
+  const DistortDistConcs &distort_dist_concs,
+  const Cache &cache
+) 
+{
   IndexNonUniformDiscreteDist *distribution;
-  for (auto const &pair : forward_index_) { 
+  for (auto const &pair : forward_index_) 
+  { 
     const ent_id &eid = pair.first;
     const std::unordered_set<rec_id> &linked_rids = links.get_record_ids(eid);
 
     val_id e_vid;
     const AbstractAttributeIndex *index;
-    for (attr_id aid=0; aid < recs.n_attributes(); aid++) {
+    for (attr_id aid=0; aid < recs.n_attributes(); aid++) 
+    {
       index = cache.attr_indices_[aid].get();
       distribution = get_distribution(aid);
-      if (typeid(*index) == typeid(ConstantAttributeIndex)) {
+      if (typeid(*index) == typeid(ConstantAttributeIndex)) 
+      {
         // TODO: replace sequential with method based on rejection sampling? 
         // Or some method that scales sublinearly in the size of the domain.
-        e_vid = drawEntityValueSequential(aid, recs, distort_probs, linked_rids, index, distribution);
-      } else {
-        //e_vid = drawEntityValueSequential(aid, recs_, distort_probs_, linked_rids, index, distribution);
-        e_vid = drawEntityValueIndex(aid, recs, distort_probs, linked_rids, index, distribution);
+        e_vid = drawEntityValueSequential(aid, recs, distort_probs, distort_dist_concs, linked_rids, index, distribution);
+      } 
+      else 
+      {
+        //e_vid = drawEntityValueSequential(aid, recs, distort_probs, distort_dist_concs, linked_rids, index, distribution);
+        e_vid = drawEntityValueIndex(aid, recs, distort_probs, distort_dist_concs, linked_rids, index, distribution);
       }
       
       set_attribute_value(eid, aid, e_vid);

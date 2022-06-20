@@ -3,9 +3,8 @@
 #include <iostream>
 #include <RcppArmadillo.h>
 
-ConstantAttributeIndex::ConstantAttributeIndex(const arma::vec &probs, double dirichlet_concentration, bool exclude_entity_value) 
+ConstantAttributeIndex::ConstantAttributeIndex(const arma::vec &probs, bool exclude_entity_value) 
   : dist_(std::shared_ptr<DiscreteDist<val_id> >(new IndexNonUniformDiscreteDist(probs.cbegin(), probs.cend(), true))), 
-    dirichlet_concentration_(dirichlet_concentration), 
     exclude_entity_value_(exclude_entity_value),
     expected_norm_constant_(1.0)
 {}
@@ -62,12 +61,10 @@ double ConstantAttributeIndex::get_exp_distortion_prob(val_id v, DiscreteDist<va
   }
 }
 
-double ConstantAttributeIndex::dirichlet_concentration() const { return dirichlet_concentration_; }
-
 NonConstantAttributeIndex::NonConstantAttributeIndex(const arma::vec &probs, 
   const std::vector<std::unordered_map<val_id, double>> &close_values, const Rcpp::NumericVector &max_exp_factor, 
-  double dirichlet_concentration, bool exclude_entity_value) 
-  : ConstantAttributeIndex(probs, dirichlet_concentration, exclude_entity_value),
+  bool exclude_entity_value) 
+  : ConstantAttributeIndex(probs, exclude_entity_value),
     close_values_(close_values)
 {
   max_exp_factor_ = std::vector<double>(max_exp_factor.begin(), max_exp_factor.end());
@@ -118,7 +115,7 @@ double NonConstantAttributeIndex::get_max_exp_factor(val_id v) const {
   return max_exp_factor_[v];
 }
 
-std::shared_ptr<AbstractAttributeIndex> readAttributeIndex(const Rcpp::S4 &R_index, double dirichlet_concentration, bool exclude_entity_value) {
+std::shared_ptr<AbstractAttributeIndex> readAttributeIndex(const Rcpp::S4 &R_index, bool exclude_entity_value) {
   const arma::vec &probs = R_index.slot("probs");
   const Rcpp::List &close_values = R_index.slot("close_values");
   const Rcpp::NumericVector &max_exp_factor = R_index.slot("max_exp_factor");
@@ -141,9 +138,9 @@ std::shared_ptr<AbstractAttributeIndex> readAttributeIndex(const Rcpp::S4 &R_ind
         close_values_[w][v] = close_probs[i];
       }
     }
-    index = new NonConstantAttributeIndex(probs, close_values_, max_exp_factor, dirichlet_concentration, exclude_entity_value);
+    index = new NonConstantAttributeIndex(probs, close_values_, max_exp_factor, exclude_entity_value);
   } else {
-    index = new ConstantAttributeIndex(probs, dirichlet_concentration, exclude_entity_value);
+    index = new ConstantAttributeIndex(probs, exclude_entity_value);
   }
 
   std::shared_ptr<AbstractAttributeIndex> out(index);

@@ -81,12 +81,6 @@ public:
    */
   virtual std::shared_ptr<DiscreteDist<val_id> > get_empirical_dist() const = 0;
 
-  /**
-   * Dirichlet concentration parameter for the distortion distribution
-   * @return a ?positive concentration parameter
-   */
-  virtual double dirichlet_concentration() const = 0;
-
   virtual ~AbstractAttributeIndex() {}
 };
 
@@ -100,9 +94,6 @@ protected:
    * Represents the empirical distribution
    */
   std::shared_ptr<DiscreteDist<val_id> > dist_;
-
-  /** Dirichlet concentration parameter for the distortion distribution */
-  double dirichlet_concentration_;
 
   /** Whether to exclude entity values in the distortion distributions */
   bool exclude_entity_value_;
@@ -121,8 +112,7 @@ public:
   bool exclude_entity_value() const;
   virtual void update(DiscreteDist<val_id>* distribution);
   virtual double get_exp_distortion_prob(val_id v, DiscreteDist<val_id> *distribution) const;
-  double dirichlet_concentration() const;
-  ConstantAttributeIndex(const arma::vec &probs, double dirichlet_concentration, bool exclude_entity_value);
+  ConstantAttributeIndex(const arma::vec &probs, bool exclude_entity_value);
   ConstantAttributeIndex(const ConstantAttributeIndex&) = delete;
   ConstantAttributeIndex& operator=(const ConstantAttributeIndex&) = delete;
 };
@@ -150,7 +140,7 @@ public:
   double get_max_distortion_prob(val_id v) const;
   double get_exp_distortion_prob(val_id v, DiscreteDist<val_id> *distribution) const;
   NonConstantAttributeIndex(const arma::vec &probs, const std::vector<std::unordered_map<val_id, double>> &close_values, 
-    const Rcpp::NumericVector &max_exp_factor, double dirichlet_concentration, bool exclude_entity_value);
+    const Rcpp::NumericVector &max_exp_factor, bool exclude_entity_value);
   NonConstantAttributeIndex(const NonConstantAttributeIndex&) = delete;
   NonConstantAttributeIndex& operator=(const NonConstantAttributeIndex&) = delete;
 };
@@ -158,7 +148,6 @@ public:
 /**
  * Builds an attribute index from an `AttributeIndex` R object.
  * @param R_index a reference to the S4 class representation of the index
- * @param dirichlet_concentration 
  * @return a shared pointer to an AbstractAttributeIndex
  */ 
-std::shared_ptr<AbstractAttributeIndex> readAttributeIndex(const Rcpp::S4 &R_index, double dirichlet_concentration, bool exclude_entity_value);
+std::shared_ptr<AbstractAttributeIndex> readAttributeIndex(const Rcpp::S4 &R_index, bool exclude_entity_value);
