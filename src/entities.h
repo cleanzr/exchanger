@@ -7,6 +7,7 @@
 #include "links.h"
 #include "distortion_probs.h"
 #include "cache.h"
+#include <memory>
 
 class Records;
 class Cache;
