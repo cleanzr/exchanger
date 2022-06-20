@@ -30,3 +30,21 @@ setClass("RP", contains = "RV")
 #' @keywords internal
 #' @noRd
 is.RP <- function(x) inherits(x, "RP")
+
+#' Generate a Random Partition
+#'
+#' @param rp a [`RP-class`] object
+#' @param n number of integers in partition
+#' @param ... other parameters passed on to other methods.
+#' 
+#' @return 
+#' Returns a partition of the integers \eqn{\{1, 2, ..., n\}}{{1, 2, ..., n}} 
+#' as a list of blocks.
+#' 
+#' @examples
+#' rp <- GeneralizedCouponRP(1, 1)
+#' rrp(rp, 100)
+#' 
+#' @export
+setGeneric("rrp", function(rp, n, ...) standardGeneric("rrp"), 
+           signature = c("rp"))

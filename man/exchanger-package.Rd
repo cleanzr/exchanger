@@ -6,13 +6,7 @@
 \alias{_PACKAGE}
 \title{exchanger: Bayesian Entity Resolution with Exchangeable Random Partition Priors}
 \description{
-Implements a Bayesian model for entity resolution as described 
-    in Marchant et al. (2020). The model assumes records are generated from 
-    a latent population of entities via a distortion process. The records are 
-    assumed to be (infinitely) exchangeable, and several priors on the 
-    linkage/clustering structure compatible with this assumption are 
-    implemented. The model is fitted using a Markov chain Monte Carlo 
-    algorithm.
+Implements a Bayesian model for entity resolution as described in Marchant et al. (2020). The model assumes records are generated from a latent population of entities via a distortion process. The records are assumed to be (infinitely) exchangeable, and several priors on the linkage/clustering structure compatible with this assumption are implemented. The model is fitted using a Markov chain Monte Carlo algorithm.
 }
 \seealso{
 Useful links:

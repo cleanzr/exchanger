@@ -36,7 +36,7 @@ setClass("ShiftedNegBinomRV", slots = c(size = "numeric", prob = "numeric"),
 #' of Bernoulli trials, before a target number of successes occur, given that 
 #' the number of failures is at least one.
 #' If \eqn{x} denotes the number of failures, \eqn{size = r} denotes the 
-#' number of success by and \eqn{prob = p} denotes the probability of success 
+#' number of successes and \eqn{prob = p} denotes the probability of success 
 #' in each trial, then the density of \eqn{x} is
 #' \deqn{p(X = x) = \frac{\Gamma(x + r - 1)}{(x - 1)! \Gamma(r)} p^n (1 - p)^{x - 1}}{p(X = x) = (Γ(x + r - 1))/((x - 1)! Γ(r)) p^n (1 - p)^{x - 1}}
 #' for \eqn{x = 1, 2, 3, ...}, \eqn{n > 0} and \eqn{0 < p \leq 1}{0 < p <= 1}.
@@ -91,3 +91,9 @@ setMethod("var", signature(x = "ShiftedNegBinomRV"),
 #' @export
 setMethod("drv", signature(x = "numeric", rv = "ShiftedNegBinomRV"), 
   function(x, rv, log=FALSE, ...) dnbinom(x - 1, rv@size, rv@prob, log=log))
+
+#' @describeIn rrv Specialization for [`ShiftedNegBinomRV`]
+#' @importFrom stats rgamma
+#' @export
+setMethod("rrv", signature(rv = "ShiftedNegBinomRV"), 
+          function(rv, ...) rnbinom(1, rv@size, rv@prob) + 1)

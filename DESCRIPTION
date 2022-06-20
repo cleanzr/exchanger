@@ -37,7 +37,7 @@ LinkingTo: Rcpp,
     RcppProgress, 
     BH (>= 1.69.0)
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8
 BugReports: https://github.com/cleanzr/exchanger/issues
@@ -58,6 +58,7 @@ Collate:
     'RP.R'
     'ExchangERModel.R'
     'ExchangERFit.R'
+    'sample_ep.R'
     'GeneralizedCouponRP.R'
     'PitmanYorRP.R'
     'RcppExports.R'

@@ -1,4 +1,6 @@
 #' @include RP.R
+#' @include RV.R
+#' @include sample_ep.R
 NULL
 
 .check_GenCouponPartition <- function(object) {
@@ -76,3 +78,14 @@ setMethod("show", "GeneralizedCouponRP", function(object) {
 #' @noRd
 #' @keywords internal
 is.GeneralizedCouponRP <- function(x) inherits(x, "GeneralizedCouponRP")
+
+#' @describeIn rrp Specialization for [`GeneralizedCouponRV`]
+#' @export
+setMethod("rrp", signature(rp = "GeneralizedCouponRP"), 
+          function(rp, n, ...) {
+            m <- if (is.RV(rp@m)) rrv(rp@m) else rp@m
+            kappa <- if (is.RV(rp@kappa)) rrv(rp@kappa) else rp@kappa
+            alpha <- m * kappa
+            sigma <- -kappa
+            sample_ewens_pitman(n, alpha, sigma)
+          })

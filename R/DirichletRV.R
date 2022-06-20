@@ -86,3 +86,12 @@ setMethod("var", signature(x = "DirichletRV"),
     sigma <- sigma / (s + 1.0)
     return(sigma)
   })
+
+#' @describeIn rrv Specialization for [`DirichletRV`]
+#' @importFrom stats rgamma
+#' @export
+setMethod("rrv", signature(rv = "DirichletRV"), 
+          function(rv, ...) {
+            samples <- vapply(rv@alpha, function(al) rgamma(1, al, 1), numeric(1))
+            samples / sum(samples)
+          })
