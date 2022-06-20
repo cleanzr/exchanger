@@ -22,6 +22,9 @@ NULL
   if (!is.double(object@distort_probs)) {
     errors <- c(errors, "`distort_probs` must be a numeric matrix")
   }
+  if (!is.double(object@distort_dist_concs)) {
+    errors <- c(errors, "`distort_dist_concs` must be a numeric vector")
+  }
   if (!is.atomic(object@rec_ids)) {
     errors <- c(errors, "`rec_ids` must be atomic")
   }
@@ -41,6 +44,9 @@ NULL
   }
   if (n_attrs != ncol(object@distort_probs)) {
     errors <- c(errors, paste("`distort_probs` must have",n_attrs,"columns"))
+  }
+  if (n_attrs != length(object@distort_dist_concs)) {
+    errors <- c(errors, paste("`distort_dist_concs` must be of length",n_attrs))
   }
   n_entities <- length(object@ent_ids)
   if (n_entities == 0) {
@@ -86,6 +92,9 @@ NULL
   }
   if (any(object@distort_probs < 0) | any(object@distort_probs > 1)) {
     errors <- c(errors, "`distort_probs` contains invalid probabilities")
+  }
+  if (any(object@distort_dist_concs <= 0)) {
+    errors <- c(errors, "`distort_dist_concs` must be positive")
   }
   # TODO: check consistency between val_ids and attr_indices
   if (any(is.na(object@ent_attrs))) {
@@ -145,6 +154,9 @@ NULL
 #'   entry in the list corresponds to an attribute in `attr_params`.
 #' @slot clust_prior A [`RP-class`] object. Represents the prior 
 #'   over the clustering of records into entities (a.k.a. linkage structure).
+#' @slot distort_dist_concs A numeric vector of positive concentration 
+#'   parameters. Each entry specifies the Dirichlet Process concentration 
+#'   parameter for one of the row names (attributes) in `rec_attrs`.
 #' 
 #' @seealso 
 #' The [`exchanger`] function should be used to initialize an ER model 
@@ -165,7 +177,8 @@ ExchangERModel <- setClass("ExchangERModel",
                         distort_probs = "matrix",
                         clust_params = "RP",
                         attr_indices = "list",
-                        clust_prior = "RP"
+                        clust_prior = "RP",
+                        distort_dist_concs = "numeric"
                       ),
                       validity = .check_ExchangERModel)
 
@@ -304,7 +317,8 @@ exchanger <- function(data, attr_params, clust_prior,
   # Initialize all random variables
   rec_distortions <- matrix(0L, nrow=n_attrs, ncol=n_records)
   links <- seq_len(n_records)
-  distort_probs <- distort_prob_from_prior(attr_params, files)
+  distort_probs <- distort_probs_from_prior(attr_params, files)
+  distort_dist_concs <- distort_dist_concs_from_prior(attr_params)
   clust_params <- clust_params_from_prior(clust_prior, n_records)
   attr_indices <- buildAttributeIndices(data, attr_params)
   
@@ -333,7 +347,7 @@ exchanger <- function(data, attr_params, clust_prior,
             ent_attrs=ent_attrs, ent_ids=ent_ids, 
             links=links, distort_probs=distort_probs, 
             clust_params=clust_params, attr_indices=attr_indices, 
-            clust_prior=clust_prior)
+            clust_prior=clust_prior, distort_dist_concs=distort_dist_concs)
 }
 
 
@@ -370,10 +384,7 @@ buildAttributeIndices <- function(data, attr_params) {
 
 #' Initialize distortion probabilities based on the prior
 #' 
-#' @param attr_params A named list of [`Attribute`] objects. Each entry 
-#'   in the list specifies the model parameters for an entity attribute, 
-#'   and should match one of the column names (attributes) in 
-#'   `data`.
+#' @param attr_params A named list of [`Attribute`] objects. 
 #' @param files A character vector containing the unique file identifiers as 
 #'   represented in the source `data`.
 #' @return A matrix containing an instantiated distortion probability for each 
@@ -381,7 +392,7 @@ buildAttributeIndices <- function(data, attr_params) {
 #' 
 #' @keywords internal
 #' @noRd
-distort_prob_from_prior <- function(attr_params, files) {
+distort_probs_from_prior <- function(attr_params, files) {
   n_files <- length(files)
   probs <- sapply(attr_params, function(a) mean(a@distort_prob_prior))
   distort_probs <- t(replicate(probs, n = n_files))
@@ -390,6 +401,19 @@ distort_prob_from_prior <- function(attr_params, files) {
   return(distort_probs)
 }
 
+#' Initialize distortion distribution concentration parameters based on the 
+#' prior
+#' 
+#' @param attr_params A named list of [`Attribute`] objects. 
+#' @return A vector containing an instantiated concentration parameter for each 
+#'   attribute
+#' 
+#' @keywords internal
+#' @noRd
+distort_dist_concs_from_prior <- function(attr_params) {
+  distort_dist_concs <- sapply(attr_params, function(a) mean(a@distort_dist_prior@alpha))
+  return(distort_dist_concs)
+}
 
 #' Initialize cluster parameters based on the prior
 #' 

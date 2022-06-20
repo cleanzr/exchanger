@@ -4,12 +4,14 @@
 #include <RcppArmadillo.h>
 #include "records.h"
 #include "entities.h"
+#include "distort_dist_concs.h"
 #include "attribute_index.h"
 #include "clust_params.h"
 #include <memory>
 
 class Entities;
 class Records;
+class DistortDistConcs;
 class AbstractAttributeIndex;
 class ClustParams;
 
@@ -72,11 +74,13 @@ public:
    * Perform a Gibbs update
    * @param ents reference to entities container
    * @param recs reference to records container
+   * @param distort_dist_concs reference to the distortion dist concentration parameters
    * @param clust_params reference to cluster parameters container
    * @param attr_indices a vector of attribute indices
    */
-  void update(Entities &ents, const Records &recs, std::shared_ptr<ClustParams> clust_params, 
-    const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices);
+  void update(Entities &ents, const Records &recs, const DistortDistConcs &distort_dist_concs, 
+              std::shared_ptr<ClustParams> clust_params, 
+              const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices);
 
 private:
   /**
@@ -84,11 +88,13 @@ private:
    * @param rid identifier of the record to update
    * @param ents reference to entities container
    * @param recs reference to records container
+   * @param distort_dist_concs reference to the distortion distribution concentration parameters
    * @param clust_params reference to cluster parameters container
    * @param attr_indices a vector of attribute indices
    */
-  void update_link(rec_id rid, Entities &ents, const Records &recs, std::shared_ptr<ClustParams> clust_params,
-    const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices);
+  void update_link(rec_id rid, Entities &ents, const Records &recs, const DistortDistConcs &distort_dist_concs, 
+                   std::shared_ptr<ClustParams> clust_params,
+                   const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices);
 
   /**
    * Add a link to the inverted index

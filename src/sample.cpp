@@ -52,6 +52,10 @@ Rcpp::S4 buildFinalS4State(const Rcpp::S4 &init_state, State &state)
   rownames(distort_probs) = fileNames;
   final_state.slot("distort_probs") = distort_probs;
   
+  Rcpp::NumericVector distort_dist_concs = state.distort_dist_concs_.to_R();
+  distort_dist_concs.attr("names") = rownames(rec_attrs);
+  final_state.slot("distort_dist_concs") = distort_dist_concs;
+
   Rcpp::S4 clust_params = state.clust_params_.get()->to_R();
   final_state.slot("clust_params") = clust_params;
   
@@ -78,7 +82,7 @@ State readS4State(Rcpp::S4 init_state)
   const Rcpp::List &attr_indices = init_state.slot("attr_indices");
   const Rcpp::S4 &clust_prior = init_state.slot("clust_prior");
   const Rcpp::S4 &clust_params = init_state.slot("clust_params");
-  
+  const arma::vec distort_dist_concs = init_state.slot("distort_dist_concs");
   arma::ivec file_sizes = Rcpp::as<arma::ivec>(Rcpp::table(file_ids_R));
   arma::ivec file_ids = Rcpp::as<arma::ivec>(file_ids_R);
   
@@ -93,6 +97,7 @@ State readS4State(Rcpp::S4 init_state)
   return State( iteration, 
     Entities(ent_ids, ent_attrs, attr_params, attr_indices),
     DistortProbs(distort_probs, attr_params),
+    DistortDistConcs(distort_dist_concs, attr_params),
     Links(links),
     Records(rec_attrs, file_ids, rec_distortions, file_sizes),
     Cache(attr_indices, attr_params),
@@ -143,7 +148,10 @@ int burnin_interval=0)
     }
   }
   colnames(hist_distort_probs) = hist_distort_probs_nms;
-  
+
+  Rcpp::NumericMatrix hist_distort_dist_concs(n_samples, state.recs_.n_attributes());
+  colnames(hist_distort_dist_concs) = attrs_names;
+
   Rcpp::IntegerMatrix hist_n_linked_ents(n_samples, 1);
   colnames(hist_n_linked_ents) = Rcpp::CharacterVector::create("n_linked_ents");
   
@@ -180,6 +188,8 @@ int burnin_interval=0)
         hist_distort_probs.row(sample_ctr) = distort_prob;
         Rcpp::IntegerVector distort_counts = state.recs_.R_distorted_counts();
         hist_distort_counts.row(sample_ctr) = distort_counts;
+        Rcpp::NumericVector distort_dist_concs = state.distort_dist_concs_.to_R();
+        hist_distort_dist_concs.row(sample_ctr) = distort_dist_concs;
         if (hist_clust_params.ncol() > 0) {
           hist_clust_params.row(sample_ctr) = clust_params->to_R_vec();
         }
@@ -200,6 +210,7 @@ int burnin_interval=0)
   history["links"] = hist_links;
   history["distort_probs"] = hist_distort_probs;
   history["distort_counts"] = hist_distort_counts;
+  history["distort_dist_concs"] = hist_distort_dist_concs;
   history["n_linked_ents"] = hist_n_linked_ents;
   if (hist_clust_params.ncol() > 0) history["clust_params"] = hist_clust_params;
   result.slot("history") = history;

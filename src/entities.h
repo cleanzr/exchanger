@@ -6,12 +6,14 @@
 #include "records.h"
 #include "links.h"
 #include "distortion_probs.h"
+#include "distort_dist_concs.h"
 #include "cache.h"
 #include <memory>
 
 class Records;
 class Cache;
 class DistortProbs;
+class DistortDistConcs;
 class Links;
 
 /**
@@ -113,9 +115,11 @@ public:
    * @param links reference to the linkage structure
    * @param recs reference to the records
    * @param distort_probs reference to the distortion probabilities
+   * @param distort_dist_concs reference to the distortion dist concentration parameters
    * @param cache reference to the cache
    */
-  void update_attributes(const Links& links, const Records &recs, const DistortProbs& distort_probs, const Cache& cache);
+  void update_attributes(const Links &links, const Records &recs, const DistortProbs &distort_probs, 
+                         const DistortDistConcs &distort_dist_concs, const Cache &cache);
 
   /** 
    * Getter for an entity attribute distribution 

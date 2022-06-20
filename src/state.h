@@ -8,6 +8,7 @@
 #include "entities.h"
 #include "links.h"
 #include "distortion_probs.h"
+#include "distort_dist_concs.h"
 #include "clust_params.h"
 
 /**
@@ -31,19 +32,21 @@ public:
   Records recs_;
   Entities ents_;
   DistortProbs distort_probs_;
-  Links links_;  
+  DistortDistConcs distort_dist_concs_;
+  Links links_; 
   std::shared_ptr<ClustParams> clust_params_;
 
   /**
    * Constructor moves all components of the model into this class
    */
-  State(int iteration, Entities entities, DistortProbs distort_probs, Links links, Records records, Cache cache, 
-    std::shared_ptr<ClustParams> clust_params)
+  State(int iteration, Entities entities, DistortProbs distort_probs, DistortDistConcs distort_dist_concs, 
+    Links links, Records records, Cache cache, std::shared_ptr<ClustParams> clust_params)
     : iteration_(iteration),
       cache_(std::move(cache)),
       recs_(std::move(records)),
       ents_(std::move(entities)),
       distort_probs_(std::move(distort_probs)),
+      distort_dist_concs_(std::move(distort_dist_concs)),
       links_(std::move(links)),
       clust_params_(std::move(clust_params))
   {
@@ -57,11 +60,13 @@ public:
   void update() {
     //Rcpp::Rcout << "Updating links" << std::endl;
     clust_params_->update(links_);
-    links_.update(ents_, recs_, clust_params_, cache_.attr_indices_);
+    links_.update(ents_, recs_, distort_dist_concs_, clust_params_, cache_.attr_indices_);
     //Rcpp::Rcout << "Updating entities" << std::endl;
-    ents_.update_attributes(links_, recs_, distort_probs_, cache_);
+    ents_.update_attributes(links_, recs_, distort_probs_, distort_dist_concs_, cache_);
     ents_.update_distributions();
     cache_.update(ents_);
+    //Rcpp::Rcout << "Updating distortion distribution concentrations" << std::endl;
+    distort_dist_concs_.update(links_, recs_, ents_, cache_);
     //Rcpp::Rcout << "Updating distortion indicators" << std::endl;
     arma::imat corr_nondistort_counts = recs_.update_distortion(ents_, links_, distort_probs_, cache_);
     //Rcpp::Rcout << "Updating distortion probs" << std::endl;

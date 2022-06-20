@@ -6,15 +6,13 @@ std::vector<std::shared_ptr<AbstractAttributeIndex> > Cache::init_members(const 
 {
   std::vector<std::shared_ptr<AbstractAttributeIndex> > attr_indices_;
   attr_indices_.reserve(attr_indices.size());
-  int attrId = 0;
+  attr_id aid = 0;
   for (const Rcpp::S4 &R_index : attr_indices) 
   {
-    const Rcpp::S4 &spec = attr_params[attrId];
-    const Rcpp::S4 &distort_dist_prior = spec.slot("distort_dist_prior");
-    double dirichlet_concentration = distort_dist_prior.slot("alpha");
+    const Rcpp::S4 &spec = attr_params[aid];
     bool exclude_entity_value = spec.slot("exclude_entity_value");
-    attr_indices_.push_back(readAttributeIndex(R_index, dirichlet_concentration, exclude_entity_value));
-    attrId++;
+    attr_indices_.push_back(readAttributeIndex(R_index, exclude_entity_value));
+    aid++;
   }
   return attr_indices_;
 }
