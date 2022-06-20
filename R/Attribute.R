@@ -2,12 +2,21 @@
 NULL
 
 setClass("Attribute", slots=c(dist_fn="function",
-                              distort_prob_prior="BetaRV",
+                              distort_prob_prior="ANY",
                               distort_dist_prior="DirichletProcess",
                               exclude_entity_value="logical",
                               entity_dist_prior="ANY"), 
          validity = function(object) {
            errors <- character()
+           if (!is.BetaRV(object@distort_prob_prior)) {
+             if (is.numeric(object@distort_prob_prior) && length(object@distort_prob_prior) == 1) {
+               if (object@distort_prob_prior < 0 || object@distort_prob_prior > 1) {
+                 errors <- c(errors, "scalar `distort_prob_prior` must be in the interval [0, 1]")
+               } else {
+                 errors <- c(errors, "`distort_prob_prior` must be a BetaRV or numeric scalar")
+               }
+             }
+           }
            if (length(object@exclude_entity_value) != 1) {
              errors <- c(errors, "`exclude_entity_value` must be a logical vector of length 1")
            }
@@ -61,8 +70,9 @@ setClass("Attribute", slots=c(dist_fn="function",
 #'   distance of `Inf` whenever \eqn{x} is unlikely to be a distortion of 
 #'   \eqn{y}. This can be achieved by wrapping a distance function in 
 #'   [`transform_dist_fn`].
-#' @param distort_prob_prior A [`BetaRV`] object. Specifies the prior 
-#'   on the distortion probability for the attribute. 
+#' @param distort_prob_prior A [`BetaRV`] object or numeric scalar. Specifies 
+#'   the prior on the distortion probability for the attribute. If a numeric 
+#'   scalar is passed, the prior is a point mass at that value.
 #' @param distort_dist_prior A [`DirichletProcess`] object. Specifies 
 #'   the prior on the distortion distribution for a record value \eqn{x} 
 #'   with entity value \eqn{y}. A Dirichlet Process with a small 

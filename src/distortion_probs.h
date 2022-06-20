@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 #include "records.h"
 #include "rv.h"
+#include <boost/optional.hpp>
 
 class Records;
 
@@ -17,7 +18,7 @@ private:
    * @param attr_params  a list of `Attribute` S4 instances.
    * @return a vector of BetaRV structs---one for each attribute.
    */
-  static std::vector<BetaRV> init_prior(const Rcpp::List &attr_params);
+  static std::vector<boost::optional<BetaRV>> init_prior(const Rcpp::List &attr_params);
 
   /**
    * A matrix of distortion probabilities. Rows correspond to files and 
@@ -28,7 +29,7 @@ private:
   /**
    * A vector of Beta priors for each attribute
    */
-  std::vector<BetaRV> distort_prob_priors_;
+  std::vector<boost::optional<BetaRV>> distort_prob_priors_;
 
 public:
   /**
