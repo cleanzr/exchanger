@@ -4,6 +4,7 @@
 #include "attribute_index.h"
 #include "entities.h"
 #include <RcppArmadillo.h>
+#include <memory>
 
 class Entities;
 

@@ -6,6 +6,7 @@
 #include "entities.h"
 #include "attribute_index.h"
 #include "clust_params.h"
+#include <memory>
 
 class Entities;
 class Records;

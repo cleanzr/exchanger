@@ -130,7 +130,7 @@ std::pair<Rcpp::IntegerVector, Rcpp::IntegerMatrix> Entities::to_R() const {
 
 void Entities::update_distributions() {
   attr_id aid = 0;
-  for (auto const v : inverse_index_) {
+  for (auto const &v : inverse_index_) {
     AttributePrior* attributePrior = attr_priors_[aid].get();
     if (attributePrior->isDirichlet_) 
     {
@@ -139,7 +139,7 @@ void Entities::update_distributions() {
     
       auto priorParamPtr = attributePrior->param_vec_.begin();
       auto concentrationPtr = concentration.begin();
-      for (auto const eids : v) {
+      for (auto const &eids : v) {
         *concentrationPtr = eids.size() + *priorParamPtr;
         concentrationPtr++;
         priorParamPtr++;
@@ -231,163 +231,186 @@ Entities::Entities(const Rcpp::IntegerVector &eids, const arma::imat &attr_vals,
   update_distributions();
 }
 
-double weightEntityValue(val_id e_vid, attr_id aid, const Records &recs, const DistortProbs &distort_probs, 
-                         const std::unordered_set<rec_id> &linkedRecIds, const AbstractAttributeIndex *index, 
-                         IndexNonUniformDiscreteDist *distribution) 
+double logWeightEntityValue(
+  val_id e_vid, 
+  attr_id aid, 
+  const Records &recs, 
+  const DistortProbs &distort_probs, 
+  const std::unordered_set<rec_id> &linked_rids, 
+  const AbstractAttributeIndex *index, 
+  IndexNonUniformDiscreteDist *distribution
+) 
 {
-  double weight, effDistProb;
+  double log_weight, eff_dist_prob;
   val_id r_vid;
-  file_id fileId;
-  int ctrDisagree = 0;
-  std::unordered_map<val_id, int> ctrDisagreeValue;
+  file_id fid;
+  int ctr_disagree = 0;
+  std::unordered_map<val_id, int> ctr_disagree_value;
   
   double max_exp_factor = index->get_max_exp_factor(e_vid);
-  weight = distribution->get_probability(e_vid);
+  log_weight = std::log(distribution->get_probability(e_vid));
+  
   // Loop over records linked to this entity
-  for (auto const &recordId: linkedRecIds) 
+  for (auto const &linked_rid: linked_rids) 
   {
-    fileId = recs.get_file_id(recordId);
-    r_vid = recs.get_attribute(recordId, aid);
+    fid = recs.get_file_id(linked_rid);
+    r_vid = recs.get_attribute(linked_rid, aid);
     if (r_vid != NA_INTEGER) 
     {
       // Record attribute value is observed
-      effDistProb = distort_probs.get(fileId, aid) * max_exp_factor;
+      eff_dist_prob = distort_probs.get(fid, aid) * max_exp_factor;
       if (r_vid == e_vid) 
       {
         if (index->exclude_entity_value())
-          weight *= 1.0 - effDistProb;
+          log_weight += std::log(1.0 - eff_dist_prob);
         else
-          weight *= 1.0 - effDistProb + effDistProb * index->get_distortion_prob(e_vid, r_vid);
+          log_weight += std::log(1.0 - eff_dist_prob + eff_dist_prob * index->get_distortion_prob(e_vid, r_vid));
       } 
       else 
       {
-        weight *= effDistProb;
+        log_weight += std::log(eff_dist_prob);
         double b = index->dirichlet_concentration();
-        if (b != R_PosInf) {
-          ctrDisagree++;
-          // Guard against floating point rounding errors
-          if (ctrDisagree == 1) {
-            weight *= 1.0 / b;
-          } else {
-            weight *= 1.0 / (1.0 - 1.0 / ctrDisagree + b);
-          }
-          auto got = ctrDisagreeValue.find(r_vid);
-          if (got != ctrDisagreeValue.end()) {
+        if (R_FINITE(b)) { // This also guarantees index->exclude_entity_value() is TRUE, checked elsewhere
+          ctr_disagree++;
+          log_weight += -std::log(ctr_disagree - 1 + b);
+          auto got = ctr_disagree_value.find(r_vid);
+          if (got != ctr_disagree_value.end()) {
             // Seen this r_vid before
             got->second++;
-            weight *= 1.0 - 1.0 / got->second + b * index->get_distortion_prob(e_vid, r_vid);
+            log_weight += std::log(got->second - 1 + b * index->get_distortion_prob(e_vid, r_vid));
           } else {
             // Seeing this r_vid for the first time
-            ctrDisagreeValue[r_vid] = 1;
-            weight *= b * index->get_distortion_prob(e_vid, r_vid);
+            ctr_disagree_value[r_vid] = 1;
+            log_weight += std::log(b * index->get_distortion_prob(e_vid, r_vid));
           }
         } else {
-          weight *= index->get_distortion_prob(e_vid, r_vid);
+          log_weight += std::log(index->get_distortion_prob(e_vid, r_vid));
         }
       }
     }
   }
-  return weight;
+  return log_weight;
 }
 
-val_id drawEntityValueSequential(attr_id aid, const Records &recs, const DistortProbs &distort_probs, 
-  const std::unordered_set<rec_id> &linkedRecIds, const AbstractAttributeIndex *index, IndexNonUniformDiscreteDist *distribution) 
+val_id drawEntityValueSequential(
+  attr_id aid, 
+  const Records &recs, 
+  const DistortProbs &distort_probs, 
+  const std::unordered_set<rec_id> &linked_rids, 
+  const AbstractAttributeIndex *index, 
+  IndexNonUniformDiscreteDist *distribution
+) 
 {
   val_id e_vid;
-  double thisWeight;
-  #ifdef CHECK_WEIGHTS
+  double log_weight;
+  double max_log_weight = R_NegInf;
+#ifdef CHECK_WEIGHTS
   double total_weight = 0.0;
-  #endif
+#endif
+  
   std::vector<double> weights(index->domain_size());
   for (e_vid = 0; e_vid < index->domain_size(); e_vid++) 
   {
-    thisWeight = weightEntityValue(e_vid, aid, recs, distort_probs, linkedRecIds, index, distribution);
-    #ifdef CHECK_WEIGHTS
-    if (thisWeight < 0.0 || !std::isfinite(thisWeight)) { 
-      std::string message = "invalid weight " + std::to_string(thisWeight) + " detected when updating entity attribute " + std::to_string(aid);
+    log_weight = logWeightEntityValue(e_vid, aid, recs, distort_probs, linked_rids, index, distribution);
+#ifdef CHECK_WEIGHTS
+    if (log_weight > 0 && !std::isfinite(log_weight)) { 
+      std::string message = "invalid log-weight " + std::to_string(log_weight) + " detected when updating entity attribute " + std::to_string(aid);
       throw std::runtime_error(message); 
     }
-    total_weight += thisWeight;
-    #endif
-    weights[e_vid] = thisWeight;
+#endif
+    if (log_weight > max_log_weight) {
+      max_log_weight = log_weight;
+    }
+    weights[e_vid] = log_weight;
   }
-  #ifdef CHECK_WEIGHTS
-  if (total_weight <= 0.0 || !std::isfinite(total_weight)) { 
+  for (auto &weight : weights) {
+    weight = std::exp(weight - max_log_weight);
+#ifdef CHECK_WEIGHTS
+    if (weight < 0.0 || !std::isfinite(weight)) {
+      std::string message = "invalid weight " + std::to_string(weight) + " detected when updating entity attribute " + std::to_string(aid);
+      throw std::runtime_error(message);
+    }
+    total_weight += weight;
+#endif
+  }
+#ifdef CHECK_WEIGHTS
+  if (total_weight <= 0.0 || !std::isfinite(total_weight)) {
     std::string message = "no valid entity values for attribute " + std::to_string(aid);
     throw std::runtime_error(message);
   }
-  #endif
+#endif
   IndexNonUniformDiscreteDist dist(weights.cbegin(), weights.cend(), false);
   return dist.draw();
 }
 
 
-/**
- * A special function needed for inference 
- * 
- * @param x a double
- * @param n an integer
- * @returns a double: \prod_{i = 1}^{n} (1 - 1/i + x)
- */
-double special_function(double x, int n) {
-  double result = 1.0;
-  for (int i = 1; i <= n; i++) {
-    result *= 1.0 - 1.0/i + x;
-  }
-  return result;
-}
-
-
-val_id drawEntityValueIndex(attr_id aid, const Records &recs, 
-  const DistortProbs &distort_probs, const std::unordered_set<rec_id> &linkedRecIds, 
+val_id drawEntityValueIndex(
+  attr_id aid, 
+  const Records &recs, 
+  const DistortProbs &distort_probs, 
+  const std::unordered_set<rec_id> &linked_rids, 
   const AbstractAttributeIndex *index, 
-  IndexNonUniformDiscreteDist *distribution) 
+  IndexNonUniformDiscreteDist *distribution
+) 
 {
   // Exploit the following observation to avoid computing the pmf on the entire 
   // domain:
   //   pmf(v) > 0 iff one of the linked records has value w == v or 
   //   dist(v,w) <= threshold
 
-  std::unordered_map<val_id, double> valueWeights;
+  std::unordered_map<val_id, double> vid_weights;
   
-  // Initialize valueWeights with necessary support
-  for (auto const &rid : linkedRecIds) 
+  // Initialize vid_weights with necessary support (use 0.0 since working with log-probs)
+  for (auto const &linked_rid : linked_rids) 
   {
-    val_id r_vid = recs.get_attribute(rid, aid);
+    val_id r_vid = recs.get_attribute(linked_rid, aid);
     if (r_vid != NA_INTEGER) 
     {
       // Record attribute value is observed
-      valueWeights[r_vid] = 1.0;
+      vid_weights[r_vid] = 0.0;
       
       const auto close_vids = index->get_close_values(r_vid);
       for (auto const &close_vid : close_vids) 
       {
-        valueWeights[close_vid.first] = 1.0;
+        vid_weights[close_vid.first] = 0.0;
       }
     }
   }
   
-  // If valueWeights is empty, then all linked record values are missing. Draw 
+  // If vid_weights is empty, then all linked record values are missing. Draw 
   // from entity distribution.
-  if (valueWeights.empty()) {
+  if (vid_weights.empty()) {
     return distribution->draw();
   }
   
-  double thisWeight;
+  double log_weight;
+  double max_log_weight = R_NegInf;
 #ifdef CHECK_WEIGHTS
   double total_weight = 0.0;
 #endif
-  for (auto &vw : valueWeights) 
+  for (auto &vw : vid_weights) 
   {
-    thisWeight = weightEntityValue(vw.first, aid, recs, distort_probs, linkedRecIds, index, distribution);
+    log_weight = logWeightEntityValue(vw.first, aid, recs, distort_probs, linked_rids, index, distribution);
 #ifdef CHECK_WEIGHTS
-    if (thisWeight < 0.0 || !std::isfinite(thisWeight)) { 
-      std::string message = "invalid weight " + std::to_string(thisWeight) + " detected when updating entity attribute " + std::to_string(aid);
+    if (log_weight > 0 && !std::isfinite(log_weight)) { 
+      std::string message = "invalid log-weight " + std::to_string(log_weight) + " detected when updating entity attribute " + std::to_string(aid);
       throw std::runtime_error(message); 
     }
-    total_weight += thisWeight;
 #endif
-    vw.second = thisWeight;
+    if (log_weight > max_log_weight) {
+      max_log_weight = log_weight;
+    }
+    vw.second = log_weight;
+  }
+  for (auto &vw : vid_weights) {
+    vw.second = std::exp(vw.second - max_log_weight);
+#ifdef CHECK_WEIGHTS
+    if (vw.second < 0.0 || !std::isfinite(vw.second)) {
+      std::string message = "invalid weight " + std::to_string(vw.second) + " detected when updating entity attribute " + std::to_string(aid);
+      throw std::runtime_error(message);
+    }
+    total_weight += vw.second;
+#endif
   }
 #ifdef CHECK_WEIGHTS
   if (total_weight <= 0.0 || !std::isfinite(total_weight)) { 
@@ -396,11 +419,12 @@ val_id drawEntityValueIndex(attr_id aid, const Records &recs,
   }
 #endif
 
-  if (valueWeights.empty()) return distribution->draw();
+  if (vid_weights.empty()) return distribution->draw();
 
-  NonUniformDiscreteDist<val_id> dist(valueWeights, false);
+  NonUniformDiscreteDist<val_id> dist(vid_weights, false);
   return dist.draw();
 }
+
 
 void Entities::update_attributes(const Links& links, const Records& recs, 
   const DistortProbs& distort_probs, const Cache& cache) {

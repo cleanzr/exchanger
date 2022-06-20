@@ -75,7 +75,8 @@ Links::Links(const Rcpp::IntegerVector &forward_index)
   forward_index_.reserve(forward_index.size());
   
   rec_id rid = 0;
-  for (auto const eid : forward_index) {
+  for (auto const eid : forward_index) 
+  {
     forward_index_.push_back(eid);
     add_inverted(rid, eid);
     rid++;
@@ -85,8 +86,12 @@ Links::Links(const Rcpp::IntegerVector &forward_index)
 template <class T> 
 bool cmpSets(const std::unordered_set<T>* a, const std::unordered_set<T>* b) { return (a->size() < b->size()); }
 
-std::vector<ent_id> getPossibleLinks(rec_id rid, const Records &recs, 
-  const Entities &ents, const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices) 
+std::vector<ent_id> getPossibleLinks(
+  rec_id rid, 
+  const Records &recs, 
+  const Entities &ents, 
+  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
+) 
 { 
   // Initialize an array which will store sets of entity ids that are 
   // candidate matches for the given record. The intersection of all sets 
@@ -207,56 +212,54 @@ std::vector<ent_id> getPossibleLinks(rec_id rid, const Records &recs,
 
 
 
-double likelihoodWeightExisting(rec_id rid, ent_id eid, const std::unordered_set<rec_id> &linked_rids, 
-  const Records &recs, const Entities &ents, const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices) 
+double logLikelihoodWeightExisting(
+  rec_id rid, 
+  ent_id eid, 
+  const std::unordered_set<rec_id> &linked_rids, 
+  const Records &recs, 
+  const Entities &ents, 
+  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
+) 
 {
-  double weight = 1.0;
-  val_id e_vid, r_vid, linked_rvid;
+  double log_weight = 0.0;
+  val_id e_vid, r_vid, linked_r_vid;
   attr_id aid;
   const AbstractAttributeIndex* index;
 
   // Factor for each attribute
   for (aid = 0; aid < recs.n_attributes(); aid++) 
   {
-    if (weight == 0.0) break;
+    if (log_weight < 0 && std::isinf(log_weight)) {
+      // weight is zero
+      break;
+    }
     
     index = attr_indices[aid].get();
     e_vid = ents.get_attribute_value(eid, aid);
+    r_vid = recs.get_attribute(rid, aid);
     
     // Counts number of observed, distorted record attribute values linked to 
     // this entity
-    int ctrDistorted = 0; 
-    // Same as above, but separates counts per unique record attribute value
-    std::unordered_map<val_id, int> ctrDistortedValues;
+    int ctr_distort = 0; 
+    int ctr_distort_same_r_vid = 0;
 
-    // Contribution associated with records linked to the entity, with 
-    // attribute values that are observed and distorted
+    // Posterior counts given other records linked to this entity (for 
+    // attribute values that are observed and distorted)
     double b = index->dirichlet_concentration();
-    if (b != R_PosInf) 
+    if (R_FINITE(b)) // This also guarantees index->exclude_entity_value() is TRUE, checked elsewhere
     {
       for (auto const &linked_rid : linked_rids) 
       {
         // Need to filter out rid, since we didn't remove it from the links 
         // data structure
-        if (linked_rid != rid) { 
-          linked_rvid = recs.get_attribute(linked_rid, aid);
-          if (recs.get_attribute_distortion(linked_rid, aid) && linked_rvid != NA_INTEGER) {
+        if (linked_rid != rid) 
+        { 
+          linked_r_vid = recs.get_attribute(linked_rid, aid);
+          if (recs.get_attribute_distortion(linked_rid, aid) && linked_r_vid != NA_INTEGER) 
+          {
             // Linked record attribute value is distorted and observed
-            ctrDistorted++;
-            if (ctrDistorted == 1) {
-              // Guard against floating point rounding errors
-              weight *= 1.0 / b;
-            } else {
-              weight *= 1.0 / (1.0 - 1.0/ctrDistorted + b);
-            }
-            auto got = ctrDistortedValues.find(linked_rvid);
-            if (got == ctrDistortedValues.end()) {
-              ctrDistortedValues[linked_rvid] = 1;
-              weight *= b * index->get_distortion_prob(e_vid, linked_rvid);
-            } else {
-              got->second++;
-              weight *= 1.0 - 1.0 / got->second + b * index->get_distortion_prob(e_vid, linked_rvid);
-            }
+            ctr_distort++;
+            if (linked_r_vid == r_vid) ctr_distort_same_r_vid++;
           }
         }
       }
@@ -264,34 +267,22 @@ double likelihoodWeightExisting(rec_id rid, ent_id eid, const std::unordered_set
     
     // Contribution associated with the record, assuming it were reassigned to 
     // this entity
-    r_vid = recs.get_attribute(rid, aid);
-    if (recs.get_attribute_distortion(rid, aid) && r_vid != NA_INTEGER) {
+    if (recs.get_attribute_distortion(rid, aid) && r_vid != NA_INTEGER) 
+    {
       // Record attribute value is distorted and observed
-      if (b != R_PosInf) {
-        if (ctrDistorted == 0) {
-          // Guard against floating point rounding errors
-          weight *= 1.0 / b;
-        } else {
-          weight *= 1.0 / (1.0 - 1.0 / (ctrDistorted + 1) + b);
-        }
-        auto got = ctrDistortedValues.find(r_vid);
-        if (got == ctrDistortedValues.end()) {
-          weight *= b * index->get_distortion_prob(e_vid, r_vid);
-        } else {
-          weight *= 1.0 - 1.0 / (got->second + 1) + b * index->get_distortion_prob(e_vid, r_vid);
-        }
-      } else {
-        weight *= index->get_distortion_prob(e_vid, r_vid);
+      if (R_FINITE(b)) 
+      { // This also guarantees index->exclude_entity_value() is TRUE, checked elsewhere
+        log_weight += std::log(ctr_distort_same_r_vid + b * index->get_distortion_prob(e_vid, r_vid));
+        log_weight += -std::log(ctr_distort + b);
+      } 
+      else 
+      {
+        log_weight += std::log(index->get_distortion_prob(e_vid, r_vid));
       }
     }
   }
-  #ifdef CHECK_WEIGHTS
-  if (weight < 0.0 || !std::isfinite(weight)) { 
-    std::string message = "invalid weight " +  std::to_string(weight) + " on entity " + std::to_string(eid) + " for record " + std::to_string(rid); 
-    throw std::runtime_error(message);
-  }
-  #endif
-  return weight;
+  
+  return log_weight;
 }
 
 val_id rejectionSampleConstant(val_id r_vid, const IndexNonUniformDiscreteDist* distribution, 
@@ -313,10 +304,14 @@ val_id rejectionSampleConstant(val_id r_vid, const IndexNonUniformDiscreteDist* 
   return e_vid;
 }
 
-double likelihoodWeightNew(rec_id rid, const Records &recs, 
-  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices, const Entities &ents) 
+double logLikelihoodWeightNew(
+  rec_id rid, 
+  const Records &recs, 
+  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices, 
+  const Entities &ents
+) 
 {
-  double weight = 1.0;
+  double log_weight = 0.0;
   val_id r_vid;
   const AbstractAttributeIndex *index;
   IndexNonUniformDiscreteDist *distribution;
@@ -330,56 +325,93 @@ double likelihoodWeightNew(rec_id rid, const Records &recs,
       if (recs.get_attribute_distortion(rid, aid)) 
       {
         // Record attribute value is distorted and observed
-        weight *= index->get_exp_distortion_prob(r_vid, distribution);
+        log_weight += std::log(index->get_exp_distortion_prob(r_vid, distribution));
       } 
       else 
       {
         // Record attribute value is observed, but not distorted
-        weight *= distribution->get_probability(r_vid);
+        log_weight += std::log(distribution->get_probability(r_vid));
       }
     }
   }
-  #ifdef CHECK_WEIGHTS
-  if (weight <= 0.0 || !std::isfinite(weight)) { 
-    std::string message = "invalid weight " +  std::to_string(weight) + " on new entity for record " + std::to_string(rid); 
-    throw std::runtime_error(message);
-  }
-  #endif
-  return weight;
+  return log_weight;
 }
 
 
-void Links::update_link(rec_id rid, Entities &ents, const Records &recs, std::shared_ptr<ClustParams> clust_params, 
-  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices) 
+void Links::update_link(
+  rec_id rid, Entities &ents, 
+  const Records &recs, 
+  std::shared_ptr<ClustParams> clust_params, 
+  const std::vector<std::shared_ptr<AbstractAttributeIndex> > &attr_indices
+) 
 {
   ent_id old_linked_eid = get_entity_id(rid);
   if (n_records(old_linked_eid) <= 1) { ents.remove(old_linked_eid); } // remove corresponding entity values
 
-  std::vector<ent_id> pLinks = getPossibleLinks(rid, recs, ents, attr_indices);
+  std::vector<ent_id> poss_links = getPossibleLinks(rid, recs, ents, attr_indices);
 
-  // First weights correspond to items in pLinks (which are existing entities).
+  // First weights correspond to items in poss_links (which are existing entities).
   // Last weight corresponds to a new entity.
-  std::vector<double> weights(pLinks.size() + 1);
+  std::vector<double> weights(poss_links.size() + 1);
   size_t i = 0;
-
+  
+  double log_weight;
+  double max_log_weight = R_NegInf;
   // Compute weights vector
   // Weights associated with existing entities
-  for (auto const &eid : pLinks) 
+  for (auto const &eid : poss_links) 
   {
-    weights[i] = clust_params->prior_weight_existing(n_records(eid) - (eid == old_linked_eid));
+    // Contribution from prior
+    weights[i] = std::log(clust_params->prior_weight_existing(n_records(eid) - (eid == old_linked_eid)));
+    // Contribution from likelihood
     const auto &linked_rids = get_record_ids(eid);
-    weights[i] *= likelihoodWeightExisting(rid, eid, linked_rids, recs, ents, attr_indices);
+    log_weight = logLikelihoodWeightExisting(rid, eid, linked_rids, recs, ents, attr_indices);
+#ifdef CHECK_WEIGHTS
+    if (log_weight > 0 && !std::isfinite(log_weight)) { 
+      std::string message = "invalid log-weight " +  std::to_string(log_weight) + " on new entity for record " + std::to_string(rid); 
+      throw std::runtime_error(message);
+    }
+#endif
+    weights[i] += log_weight;
+    if (weights[i] > max_log_weight) { max_log_weight = weights[i]; }
     i++;
   }
   // Weight associated with "new" entity.
-  weights[i] = clust_params->prior_weight_new(ents.n_entities());
-  weights[i] *= likelihoodWeightNew(rid, recs, attr_indices, ents);
+  weights[i] = std::log(clust_params->prior_weight_new(ents.n_entities()));
+  log_weight = logLikelihoodWeightNew(rid, recs, attr_indices, ents);
+#ifdef CHECK_WEIGHTS
+  if (log_weight > 0 && !std::isfinite(log_weight)) { 
+    std::string message = "invalid log-weight " +  std::to_string(log_weight) + " on new entity for record " + std::to_string(rid); 
+    throw std::runtime_error(message);
+  }
+#endif
+  weights[i] += log_weight;
+  if (weights[i] > max_log_weight) { max_log_weight = weights[i]; }
   
-  ent_id newLink;
+  ent_id new_eid;
+#ifdef CHECK_WEIGHTS
+  double total_weight = 0.0;
+#endif
+  for (auto &weight : weights) {
+    weight = std::exp(weight - max_log_weight);
+#ifdef CHECK_WEIGHTS
+    if (weight < 0.0 || !std::isfinite(weight)) {
+      std::string message = "invalid weight " + std::to_string(weight) + " detected when updating link for record " + std::to_string(rid);
+      throw std::runtime_error(message);
+    }
+    total_weight += weight;
+#endif
+  }
+#ifdef CHECK_WEIGHTS
+  if (total_weight <= 0.0 || !std::isfinite(total_weight)) {
+    std::string message = "no valid links for record " + std::to_string(rid);
+    throw std::runtime_error(message);
+  }
+#endif
   IndexNonUniformDiscreteDist dist(weights.cbegin(), weights.cend(), false);
-  int randIdx = dist.draw();
+  int rand_idx = dist.draw();
 
-  if (randIdx == pLinks.size())
+  if (rand_idx == poss_links.size())
   {
     // Selected "new" entity. Below we draw attributes for this new entity according to the posterior distribution.
     const AbstractAttributeIndex* index;
@@ -422,14 +454,14 @@ void Links::update_link(rec_id rid, Entities &ents, const Records &recs, std::sh
       }
     }
     // Update index and get entity id for new link
-    newLink = ents.add(attributeVec);
+    new_eid = ents.add(attributeVec);
   }
   else 
   {
     // Selected existing entity
-    newLink = pLinks[randIdx];
+    new_eid = poss_links[rand_idx];
   }
-  set_link(rid, newLink);
+  set_link(rid, new_eid);
 }
 
 void Links::update(Entities &ents, const Records &recs, std::shared_ptr<ClustParams> clust_params,
