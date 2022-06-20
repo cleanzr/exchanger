@@ -1,7 +1,7 @@
 #include "clust_params.h"
 #include <RcppArmadillo.h>
 
-double CouponClustParams::prior_weight_existing(int clusterSize) const
+double CouponClustParams::prior_weight_existing(int cluster_size) const
 { 
   return 1.0; 
 }
@@ -11,9 +11,9 @@ double CouponClustParams::prior_weight_new(int n_clusters) const
   return std::abs(m_  - n_clusters); 
 }
 
-double GenCouponClustParams::prior_weight_existing(int clusterSize) const
+double GenCouponClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return clusterSize + kappa_; 
+  return cluster_size + kappa_; 
 }
 
 double GenCouponClustParams::prior_weight_new(int n_clusters) const
@@ -21,9 +21,9 @@ double GenCouponClustParams::prior_weight_new(int n_clusters) const
   return kappa_ * std::abs(m_  - n_clusters); 
 }
 
-double PitmanYorClustParams::prior_weight_existing(int clusterSize) const
+double PitmanYorClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return std::abs(clusterSize - d_);
+  return std::abs(cluster_size - d_);
 }
 
 double PitmanYorClustParams::prior_weight_new(int n_clusters) const { 
@@ -35,17 +35,20 @@ void CouponClustParams::update(Links &links) {
 }
 
 void GenCouponClustParams::update(Links &links) {
-  double w = 0;
-  int num_v_success = 0;
-  
-  if (kappa_prior_.has_value() || m_prior_.has_value()) {
-    // Generate x auxiliary variable
-    w = R::rbeta(m_ * kappa_ + 1, links.n_records() - 1);
+    
+  if (!kappa_prior_.has_value() && !m_prior_.has_value()) {
+    // Nothing to update
+    return;
   }
+
+  // Generate w auxiliary variable
+  double w = R::rbeta(m_ * kappa_ + 1, links.n_records() - 1);
+
   if (kappa_prior_.has_value()) {
     // Generate v auxiliary variables
     int clust_size;
     double prob_j;
+    int num_v_success = 0;
     for (auto const &clust : links.inverse_index_) {
       clust_size = clust.second.size();
       for (int j = 1; j <= clust_size - 1; j++) {
@@ -53,11 +56,15 @@ void GenCouponClustParams::update(Links &links) {
         num_v_success += (R::unif_rand() < prob_j);
       }
     }
-    double a = kappa_prior_.value().get_shape() + links.n_linked_ents() - 1 + num_v_success;
-    double scl = 1.0 / (kappa_prior_.value().get_rate() - m_ * std::log(w));
-    kappa_ = R::rgamma(a, scl);
+
+    // Update kappa
+    double shape = kappa_prior_.value().get_shape() + links.n_linked_ents() - 1 + num_v_success;
+    double rate = kappa_prior_.value().get_rate() - m_ * std::log(w);
+    kappa_ = R::rgamma(shape, 1.0 / rate);
   }
+  
   if (m_prior_.has_value()) {
+    // Update m
     double sz = m_prior_.value().get_size() + links.n_linked_ents() - 1;
     double pb = 1 - (1 - m_prior_.value().get_prob()) * std::pow(w, kappa_);
     m_ = R::rnbinom(sz, pb) + links.n_linked_ents();
@@ -66,50 +73,50 @@ void GenCouponClustParams::update(Links &links) {
 
 void PitmanYorClustParams::update(Links &links)
 {
-  // Stats for auxiliary variables
-  double w = 0;
-  int num_v_fail = 0;
-  int num_u_fail = 0;
-  int num_u_success = 0;
-  
-  if (alpha_prior_.has_value()) {
-    // Generate x auxiliary variable
-    w = R::rbeta(alpha_ + 1, links.n_records() - 1);
+  if (!d_prior_.has_value() || !alpha_prior_.has_value()) {
+    // Nothing to update
+    return;
   }
+  
+  // Generate u auxiliary variables
+  bool u_i;
+  double prob_i;
+  int num_u_success = 0;
+  int num_u_fail = 0;
+  for (int i = 1; i <= links.n_linked_ents() - 1; i++) {
+    prob_i = alpha_/(alpha_ + d_ * i);
+    u_i = (R::unif_rand() < prob_i);
+    num_u_success += u_i;
+    num_u_fail += 1 - u_i;
+  }
+
+  if (alpha_prior_.has_value()) {
+    // Generate w auxiliary variable
+    double w = R::rbeta(alpha_ + 1, links.n_records() - 1);
+
+    // Update alpha
+    double shape = alpha_prior_.value().get_shape() + num_u_success;
+    double rate = alpha_prior_.value().get_rate() - std::log(w);
+    alpha_ = R::rgamma(shape, 1.0 / rate);
+  }
+
   if (d_prior_.has_value()) {
     // Generate v auxiliary variables
-    int n_records;
+    int clust_size;
     double prob_j;
+    int num_v_fail = 0;
     for (auto const &clust : links.inverse_index_) {
-      n_records = clust.second.size();
-      for (int j = 1; j <= n_records - 1; j++) {
+      clust_size = clust.second.size();
+      for (int j = 1; j <= clust_size - 1; j++) {
         prob_j = (j - 1)/(j - d_);
         num_v_fail += (R::unif_rand() >= prob_j);
       }
     }
-  }
-  if (alpha_prior_.has_value() || d_prior_.has_value()) {
-    // Generate u auxiliary variables
-    bool y_i;
-    double prob_i;
-    for (int i = 1; i <= links.n_linked_ents() - 1; i++) {
-      prob_i = alpha_/(alpha_ + d_ * i);
-      y_i = (R::unif_rand() < prob_i);
-      num_u_success += y_i;
-      num_u_fail += 1 - y_i;
-    }
 
-    // Update alpha_ and d_
-    if (alpha_prior_.has_value()) {
-      double a = alpha_prior_.value().get_shape() + num_u_success;
-      double scl = 1.0 / (alpha_prior_.value().get_rate() - std::log(w));
-      alpha_ = R::rgamma(a, scl);
-    }
-    if (d_prior_.has_value()) {
-      double a = d_prior_.value().get_shape1() + num_u_fail;
-      double b = d_prior_.value().get_shape2() + num_v_fail;
-      d_ = R::rbeta(a, b);
-    }
+    // Update d
+    double shape1 = d_prior_.value().get_shape1() + num_u_fail;
+    double shape2 = d_prior_.value().get_shape2() + num_v_fail;
+    d_ = R::rbeta(shape1, shape2);
   }
 }
 
@@ -148,11 +155,11 @@ Rcpp::S4 PitmanYorClustParams::to_R() const {
   return out;
 }
 
-Rcpp::NumericVector CouponClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::NumericVector CouponClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (includeFixed) {
+  if (include_fixed) {
     names.push_back("kappa");
     values.push_back(R_PosInf);
     names.push_back("m");
@@ -165,15 +172,15 @@ Rcpp::NumericVector CouponClustParams::to_R_vec(bool includeFixed) const
   return out; 
 }
 
-Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (kappa_prior_.has_value() || includeFixed) {
+  if (kappa_prior_.has_value() || include_fixed) {
     names.push_back("kappa");
     values.push_back(kappa_);
   }
-  if (m_prior_.has_value() || includeFixed) {
+  if (m_prior_.has_value() || include_fixed) {
     names.push_back("m");
     values.push_back(m_);
   }
@@ -184,15 +191,15 @@ Rcpp::NumericVector GenCouponClustParams::to_R_vec(bool includeFixed) const
   return out; 
 }
 
-Rcpp::NumericVector PitmanYorClustParams::to_R_vec(bool includeFixed) const 
+Rcpp::NumericVector PitmanYorClustParams::to_R_vec(bool include_fixed) const 
 {
   std::vector<std::string> names;
   std::vector<double> values;
-  if (alpha_prior_.has_value() || includeFixed) {
+  if (alpha_prior_.has_value() || include_fixed) {
     names.push_back("alpha");
     values.push_back(alpha_);
   }
-  if (d_prior_.has_value() || includeFixed) {
+  if (d_prior_.has_value() || include_fixed) {
     names.push_back("d");
     values.push_back(d_);
   }

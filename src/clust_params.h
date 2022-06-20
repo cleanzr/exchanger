@@ -20,10 +20,10 @@ public:
   /**
    * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
    * the CRP representation of the random partition. 
-   * @param clusterSize the size of the existing cluster
+   * @param cluster_size the size of the existing cluster
    * @return a positive weight (not normalized)
    */
-  virtual double prior_weight_existing(int clusterSize) const = 0;
+  virtual double prior_weight_existing(int cluster_size) const = 0;
   
   /**
    * Convert to an R representation
@@ -33,10 +33,10 @@ public:
 
   /**
    * Convert to an R vector representation
-   * @param includeFixed whether to include clustering parameters that are fixed
+   * @param include_fixed whether to include clustering parameters that are fixed
    * @return a named numeric vector, where the names correspond to clustering parameters
    */
-  virtual Rcpp::NumericVector to_R_vec(bool includeFixed=false) const = 0;
+  virtual Rcpp::NumericVector to_R_vec(bool include_fixed=false) const = 0;
   
   /**
    * Update the clustering parameters (if they're random)
@@ -65,10 +65,10 @@ public:
    /**
     * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
     * the CRP representation of the random partition. 
-    * @param clusterSize the size of the existing cluster
+    * @param cluster_size the size of the existing cluster
     * @return a positive weight (not normalized)
     */
-   double prior_weight_existing(int clusterSize) const;
+   double prior_weight_existing(int cluster_size) const;
    
    /**
     * Constructor from R objects
@@ -85,10 +85,10 @@ public:
    
    /**
     * Convert to an R vector representation
-    * @param includeFixed whether to include clustering parameters that are fixed
+    * @param include_fixed whether to include clustering parameters that are fixed
     * @return a named numeric vector, where the names correspond to clustering parameters
     */
-   virtual Rcpp::NumericVector to_R_vec(bool includeFixed=false) const;
+   virtual Rcpp::NumericVector to_R_vec(bool include_fixed=false) const;
    
    /**
     * Update the clustering parameters (if they're random)
@@ -121,10 +121,10 @@ public:
   /**
    * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
    * the CRP representation of the random partition. 
-   * @param clusterSize the size of the existing cluster
+   * @param cluster_size the size of the existing cluster
    * @return a positive weight (not normalized)
    */
-  double prior_weight_existing(int clusterSize) const;
+  double prior_weight_existing(int cluster_size) const;
 
   /**
    * Constructor from R objects
@@ -142,10 +142,10 @@ public:
 
   /**
    * Convert to an R vector representation
-   * @param includeFixed whether to include clustering parameters that are fixed
+   * @param include_fixed whether to include clustering parameters that are fixed
    * @return a named numeric vector, where the names correspond to clustering parameters
    */
-  virtual Rcpp::NumericVector to_R_vec(bool includeFixed=false) const;
+  virtual Rcpp::NumericVector to_R_vec(bool include_fixed=false) const;
 
   /**
    * Update the clustering parameters (if they're random)
@@ -177,10 +177,10 @@ public:
   /**
    * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
    * the CRP representation of the random partition. 
-   * @param clusterSize the size of the existing cluster
+   * @param cluster_size the size of the existing cluster
    * @return a positive weight (not normalized)
    */
-  double prior_weight_existing(int clusterSize) const;
+  double prior_weight_existing(int cluster_size) const;
 
   /**
    * Constructor from R objects
@@ -198,10 +198,10 @@ public:
 
   /**
    * Convert to an R vector representation
-   * @param includeFixed whether to include clustering parameters that are fixed
+   * @param include_fixed whether to include clustering parameters that are fixed
    * @return a named numeric vector, where the names correspond to clustering parameters
    */
-  Rcpp::NumericVector to_R_vec(bool includeFixed=false) const;
+  Rcpp::NumericVector to_R_vec(bool include_fixed=false) const;
 
   /**
    * Update the clustering parameters (if they're random)
