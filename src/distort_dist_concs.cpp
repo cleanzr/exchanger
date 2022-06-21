@@ -24,7 +24,9 @@ double DistortDistConcs::get(attr_id aid) const {
 }
 
 Rcpp::NumericVector DistortDistConcs::to_R() const {
-  return Rcpp::wrap(values_);
+  Rcpp::NumericVector values_vec = Rcpp::wrap(values_);
+  values_vec.attr("dim") = R_NilValue ;
+  return(values_vec);
 }
 
 void DistortDistConcs::update(
