@@ -101,7 +101,7 @@ void GenCouponClustParams::update(Links &links) {
 
 void PitmanYorClustParams::update(Links &links)
 {
-  if (!d_prior_.has_value() || !alpha_prior_.has_value()) {
+  if (!d_prior_.has_value() && !alpha_prior_.has_value()) {
     // Nothing to update
     return;
   }
