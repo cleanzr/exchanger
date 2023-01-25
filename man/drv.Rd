@@ -33,13 +33,13 @@ Computes the density of a random variable at a point
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{x = numeric,rv = GammaRV}: Specialization for \code{\link{GammaRV}}
+\item \code{drv(x = numeric, rv = GammaRV)}: Specialization for \code{\link{GammaRV}}
 
-\item \code{x = numeric,rv = BetaRV}: Specialization for \code{\link{BetaRV}}
+\item \code{drv(x = numeric, rv = BetaRV)}: Specialization for \code{\link{BetaRV}}
 
-\item \code{x = numeric,rv = ShiftedNegBinomRV}: Specialization for \code{\link{ShiftedNegBinomRV}}
+\item \code{drv(x = numeric, rv = ShiftedNegBinomRV)}: Specialization for \code{\link{ShiftedNegBinomRV}}
+
 }}
-
 \examples{
 x <- BetaRV(1, 1)
 drv(x)

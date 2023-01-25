@@ -47,11 +47,11 @@ Carlo (MCMC).
 }
 \section{Functions}{
 \itemize{
-\item \code{run_inference,ExchangERModel-method}: Specialization for \code{\linkS4class{ExchangERModel}}
+\item \code{run_inference(ExchangERModel)}: Specialization for \code{\linkS4class{ExchangERModel}}
 
-\item \code{run_inference,ExchangERFit-method}: Specialization for \code{\linkS4class{ExchangERFit}}
+\item \code{run_inference(ExchangERFit)}: Specialization for \code{\linkS4class{ExchangERFit}}
+
 }}
-
 \examples{
 ## Initialize a model for entity resolution of RLdata500
 library(comparator)

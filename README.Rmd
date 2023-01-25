@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 ## Overview
 
 This R package implements the Bayesian entity resolution model described 
-in [@marchant_exchangeable_2020]. The model assumes records are generated 
+in [@marchant_exchangeable_2023]. The model assumes records are generated 
 from a latent population of entities via a distortion process. Entity 
 resolution is performed by inferring the latent _linkage structure_ 
 using a Markov chain Monte Carlo algorithm. 

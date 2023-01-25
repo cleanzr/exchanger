@@ -66,6 +66,10 @@ entry in the list corresponds to an attribute in \code{attr_params}.}
 
 \item{\code{clust_prior}}{A \code{\linkS4class{RP}} object. Represents the prior
 over the clustering of records into entities (a.k.a. linkage structure).}
+
+\item{\code{distort_dist_concs}}{A numeric vector of positive concentration
+parameters. Each entry specifies the Dirichlet Process concentration
+parameter for one of the row names (attributes) in \code{rec_attrs}.}
 }}
 
 \seealso{

@@ -32,15 +32,15 @@ Computes the mean (expected value) of a random variable
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{GammaRV}: Specialization for \code{\link{GammaRV}}
+\item \code{mean(GammaRV)}: Specialization for \code{\link{GammaRV}}
 
-\item \code{BetaRV}: Specialization for \code{\link{BetaRV}}
+\item \code{mean(BetaRV)}: Specialization for \code{\link{BetaRV}}
 
-\item \code{DirichletRV}: Specialization for \code{\link{DirichletRV}}
+\item \code{mean(DirichletRV)}: Specialization for \code{\link{DirichletRV}}
 
-\item \code{ShiftedNegBinomRV}: Specialization for \code{\link{ShiftedNegBinomRV}}
+\item \code{mean(ShiftedNegBinomRV)}: Specialization for \code{\link{ShiftedNegBinomRV}}
+
 }}
-
 \examples{
 x <- BetaRV(1, 1)
 mean(x)

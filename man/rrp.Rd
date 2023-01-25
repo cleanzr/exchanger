@@ -28,11 +28,11 @@ Generate a Random Partition
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{GeneralizedCouponRP}: Specialization for \code{\link{GeneralizedCouponRV}}
+\item \code{rrp(GeneralizedCouponRP)}: Specialization for \code{\link{GeneralizedCouponRV}}
 
-\item \code{PitmanYorRP}: Specialization for \code{\link{PitmanYorRP}}
+\item \code{rrp(PitmanYorRP)}: Specialization for \code{\link{PitmanYorRP}}
+
 }}
-
 \examples{
 rp <- GeneralizedCouponRP(1, 1)
 rrp(rp, 100)
