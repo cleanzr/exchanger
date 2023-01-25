@@ -32,10 +32,17 @@ head(RLdata500)
 ```
 
 Next we specify the model parameters for the entity attributes. 
-For simplicity, we use a uniform prior for the distortion probability 
-associated with each attribute.
+We define a beta prior for the distortion probabilities that favors low 
+distortion (positively skewed).
 ```{r, eval=TRUE, message=FALSE, warning=FALSE}
-unif_prior <- BetaRV(1, 1)
+beta_prior <- BetaRV(1, 4)
+```
+We define a flexible Dirichlet Process prior (with a vague gamma hyperprior on 
+the concentration) for the distortion distribution. 
+The distortion distribution is used to pick an alternative attribute value for 
+a record if the entity attribute value is distorted.
+```{r, eval=TRUE, message=FALSE, warning=FALSE}
+dp_prior <- DirichletProcess(alpha = GammaRV(2, 1e-4))
 ```
 
 We model the distortion for the name attributes (`fname_c1` and `lname_c1`) 
@@ -54,12 +61,17 @@ with a constant distance function.
 ```{r, eval=TRUE, message=FALSE}
 attr_params <- list(
   fname_c1 = Attribute(transform_dist_fn(Levenshtein(), threshold = 3.0),
-                         distort_prob_prior = unif_prior),
+                       distort_prob_prior = beta_prior,
+                       distort_dist_prior = dp_prior),
   lname_c1 = Attribute(transform_dist_fn(Levenshtein(), threshold = 3.0),
-                         distort_prob_prior = unif_prior),
-  by = CategoricalAttribute(distort_prob_prior = unif_prior),
-  bm = CategoricalAttribute(distort_prob_prior = unif_prior),
-  bd = CategoricalAttribute(distort_prob_prior = unif_prior)
+                       distort_prob_prior = beta_prior,
+                       distort_dist_prior = dp_prior),
+  by = CategoricalAttribute(distort_prob_prior = beta_prior, 
+                            distort_dist_prior = dp_prior),
+  bm = CategoricalAttribute(distort_prob_prior = beta_prior,
+                            distort_dist_prior = dp_prior),
+  bd = CategoricalAttribute(distort_prob_prior = beta_prior,
+                            distort_dist_prior = dp_prior)
 )
 ```
 
@@ -67,7 +79,7 @@ Finally we specify the prior over the linkage structure (clustering). Here we
 use a Pitman-Yor random partition for the prior, with hyperpriors on the 
 concentration and discount parameters.
 ```{r, eval=TRUE, message=FALSE}
-clust_prior <- PitmanYorRP(alpha = GammaRV(1, 1), d = BetaRV(1, 1))
+clust_prior <- PitmanYorRP(alpha = GammaRV(1, 1e-2), d = BetaRV(1, 1))
 ```
 
 All that remains is to initialize the model and run inference. 
@@ -83,9 +95,9 @@ We recommend inspecting trace plots to verify that the Markov chain has
 reached equilibrium and is mixing well. The results below seem acceptable given 
 the small number of samples.
 ```{r}
-n_linked_ents <- extract(result, "n_linked_ents")
-distort_probs <- extract(result, "distort_probs")
-distort_counts <- extract(result, "distort_counts")
+n_linked_ents <- exchanger::extract(result, "n_linked_ents")
+distort_probs <- exchanger::extract(result, "distort_probs")
+distort_counts <- exchanger::extract(result, "distort_counts")
 plot(n_linked_ents)
 plot(distort_probs)
 plot(distort_counts)
