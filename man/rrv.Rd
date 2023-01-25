@@ -32,15 +32,15 @@ Generate a Random Variable
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{GammaRV}: Specialization for \code{\link{GammaRV}}
+\item \code{rrv(GammaRV)}: Specialization for \code{\link{GammaRV}}
 
-\item \code{BetaRV}: Specialization for \code{\link{BetaRV}}
+\item \code{rrv(BetaRV)}: Specialization for \code{\link{BetaRV}}
 
-\item \code{DirichletRV}: Specialization for \code{\link{DirichletRV}}
+\item \code{rrv(DirichletRV)}: Specialization for \code{\link{DirichletRV}}
 
-\item \code{ShiftedNegBinomRV}: Specialization for \code{\link{ShiftedNegBinomRV}}
+\item \code{rrv(ShiftedNegBinomRV)}: Specialization for \code{\link{ShiftedNegBinomRV}}
+
 }}
-
 \examples{
 x <- BetaRV(1, 1)
 rrv(x)

@@ -18,7 +18,7 @@ Authors@R: c(
            role = c("aut", "ths")))
 Maintainer: Neil Marchant <ngmarchant@gmail.com>
 Description: Implements a Bayesian model for entity resolution as described 
-    in Marchant et al. (2020). The model assumes records are generated from 
+    in Marchant et al. (2023). The model assumes records are generated from 
     a latent population of entities via a distortion process. The records are 
     assumed to be (infinitely) exchangeable, and several priors on the 
     linkage/clustering structure compatible with this assumption are 
@@ -37,7 +37,7 @@ LinkingTo: Rcpp,
     RcppProgress, 
     BH (>= 1.69.0)
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8
 BugReports: https://github.com/cleanzr/exchanger/issues

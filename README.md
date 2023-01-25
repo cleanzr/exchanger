@@ -5,23 +5,23 @@
 ## Overview
 
 This R package implements the Bayesian entity resolution model described
-in (Marchant, Rubinstein, and Steorts 2020). The model assumes records
+in (Marchant, Rubinstein, and Steorts 2023). The model assumes records
 are generated from a latent population of entities via a distortion
 process. Entity resolution is performed by inferring the latent *linkage
 structure* using a Markov chain Monte Carlo algorithm.
 
 ## Features
 
-  - Supports user-defined attribute distance functions for modeling the
+-   Supports user-defined attribute distance functions for modeling the
     distortion process.
-  - Supports missing values.
-  - Implements the Ewens-Pitman (EP) family of exchangeable clustering
+-   Supports missing values.
+-   Implements the Ewens-Pitman (EP) family of exchangeable clustering
     priors (Pitman 2006), with support for hyperpriors on the EP
     parameters. This includes the Ewens partition (related to the
     Dirichlet process), Pitman-Yor partition (related to the Pitman-Yor
     process) and Generalized Coupon partition (related to finite mixture
     models).
-  - Inference is implemented in C++ using partially-collapsed Gibbs
+-   Inference is implemented in C++ using partially-collapsed Gibbs
     sampling (Dyk and Park 2008). Several computational tricks are used
     to improve scalability.
 
@@ -123,25 +123,25 @@ pred_pairs <- clusters_to_pairs(pred_clust)
 measures <- eval_report_pairs(true_pairs, pred_pairs, num_pairs=n_records*(n_records-1)/2)
 print(measures)
 #> $precision
-#> [1] 1
+#> [1] 0.98
 #> 
 #> $recall
 #> [1] 0.98
 #> 
 #> $specificity
-#> [1] 1
+#> [1] 0.999992
 #> 
 #> $sensitivity
 #> [1] 0.98
 #> 
 #> $f1score
-#> [1] 0.989899
+#> [1] 0.98
 #> 
 #> $accuracy
-#> [1] 0.999992
+#> [1] 0.999984
 #> 
 #> $balanced_accuracy
-#> [1] 0.99
+#> [1] 0.989996
 ```
 
 ## License
@@ -150,9 +150,9 @@ GPL-3
 
 ## References
 
-<div id="refs" class="references hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
-<div id="ref-dyk_partially_2008">
+<div id="ref-dyk_partially_2008" class="csl-entry">
 
 Dyk, David A. van, and Taeyoung Park. 2008. “Partially Collapsed Gibbs
 Samplers.” *Journal of the American Statistical Association* 103 (482):
@@ -160,23 +160,28 @@ Samplers.” *Journal of the American Statistical Association* 103 (482):
 
 </div>
 
-<div id="ref-marchant_exchangeable_2020">
+<div id="ref-marchant_exchangeable_2023" class="csl-entry">
 
 Marchant, Neil G., Benjamin I. P. Rubinstein, and Rebecca C. Steorts.
-2020. “Exchangeable Clustering Priors for Bayesian Entity Resolution.”
+2023. “<span class="nocase">Bayesian Graphical Entity Resolution using
+Exchangeable Random Partition Priors</span>.” *Journal of Survey
+Statistics and Methodology*, January.
+<https://doi.org/10.1093/jssam/smac030>.
 
 </div>
 
-<div id="ref-pitman_exchangeable_2006">
+<div id="ref-pitman_exchangeable_2006" class="csl-entry">
 
 Pitman, Jim. 2006. “Exchangeable Random Partitions.” In *Combinatorial
-Stochastic Processes: Ecole d’Eté de Probabilités de Saint-Flour XXXII –
-2002*, edited by Jean Picard, 37–53. Berlin, Heidelberg: Springer Berlin
-Heidelberg. <https://doi.org/10.1007/3-540-34266-4_3>.
+Stochastic Processes: Ecole <span class="nocase">d’Et<span
+class="nocase">é</span></span> de <span class="nocase">Probabilit<span
+class="nocase">é</span>s</span> de Saint-Flour XXXII – 2002*, edited by
+Jean Picard, 37–53. Berlin, Heidelberg: Springer Berlin Heidelberg.
+<https://doi.org/10.1007/3-540-34266-4_3>.
 
 </div>
 
-<div id="ref-steorts2016">
+<div id="ref-steorts2016" class="csl-entry">
 
 Steorts, Rebecca C., Rob Hall, and Stephen E. Fienberg. 2016. “A
 Bayesian Approach to Graphical Record Linkage and Deduplication.”

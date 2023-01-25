@@ -33,15 +33,15 @@ Computes the variance-covariance matrix of a random variable
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{GammaRV}: Specialization for \code{\link{GammaRV}}
+\item \code{var(GammaRV)}: Specialization for \code{\link{GammaRV}}
 
-\item \code{BetaRV}: Specialization for \code{\link{BetaRV}}
+\item \code{var(BetaRV)}: Specialization for \code{\link{BetaRV}}
 
-\item \code{DirichletRV}: Specialization for \code{\link{DirichletRV}}
+\item \code{var(DirichletRV)}: Specialization for \code{\link{DirichletRV}}
 
-\item \code{ShiftedNegBinomRV}: Specialization for \code{\link{ShiftedNegBinomRV}}
+\item \code{var(ShiftedNegBinomRV)}: Specialization for \code{\link{ShiftedNegBinomRV}}
+
 }}
-
 \examples{
 x <- BetaRV(1, 1)
 var(x)
