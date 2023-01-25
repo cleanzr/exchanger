@@ -68,15 +68,15 @@ void DistortDistConcs::update(
             {
               auto got = ctr_disagree_value.find(r_vid);
               if (got != ctr_disagree_value.end()) {
-              // Seen this r_vid before
-              double z = values_[aid] * index->get_distortion_prob(e_vid, r_vid);
-              int &i = got->second;
-              i++;
-              prob_ei = z / (z + i - 1);
+                // Seen this r_vid before
+                double z = values_[aid] * index->get_distortion_prob(e_vid, r_vid);
+                int &i = got->second;
+                i++;
+                prob_ei = z / (z + i - 1);
               } else {
-              // Seeing this r_vid for the first time
-              ctr_disagree_value[r_vid] = 1;
-              prob_ei = 1.0;
+                // Seeing this r_vid for the first time
+                ctr_disagree_value[r_vid] = 1;
+                prob_ei = 1.0;
               }
               ctr_disagree += 1;
               sum_zeta_ei += (R::unif_rand() < prob_ei);
