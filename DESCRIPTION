@@ -1,8 +1,8 @@
 Package: exchanger
 Type: Package
 Title: Bayesian Entity Resolution with Exchangeable Random Partition Priors
-Version: 0.2.0
-Date: 2020-12-17
+Version: 0.3.0
+Date: 2023-01-25
 Authors@R: c(
     person(given = "Neil", 
            family = "Marchant", 
