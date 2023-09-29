@@ -1,0 +1,18 @@
+citHeader("To cite exchanger in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Bayesian Graphical Entity Resolution using Exchangeable Random Partition Priors",
+  author   = "Neil G. Marchant, Benjamin I. P. Rubinstein and Rebecca C. Steorts",
+  journal  = "Journal of Survey Statistics and Methodology",
+  year     = "2023",
+  doi      = "10.1093/jssam/smac030",
+  url      = "https://doi.org/10.1093/jssam/smac030",
+  note     = "smac030",
+  textVersion = paste(
+    "Neil G. Marchant, Benjamin I. P. Rubinstein, Rebecca C. Steorts (2023),",
+    "\"Bayesian Graphical Entity Resolution using Exchangeable Random",
+    "Partition Priors,\" Journal of Survey Statistics and Methodology,",
+    "https://doi.org/10.1093/jssam/smac030"
+  )
+)
