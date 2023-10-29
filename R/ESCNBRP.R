@@ -3,26 +3,26 @@ NULL
 
 .check_ESCNB <- function(object) {
   errors = character()
-  if (!is_scalar(object@prob) && !is.BetaRV(object@prob)) {
-    errors <- c(errors, "prob must be a scalar or a BetaRV")
+  if (!is_scalar(object@p) && !is.BetaRV(object@p)) {
+    errors <- c(errors, "p must be a scalar or a BetaRV")
   }
-  if (!is_scalar(object@size) & !is.GammaRV(object@size)) {
-    errors <- c(errors, "size must be a scalar or a GammaRV")
+  if (!is_scalar(object@n) & !is.GammaRV(object@n)) {
+    errors <- c(errors, "n must be a scalar or a GammaRV")
   }
-  if (is_numeric_scalar(object@prob)) {
-    if (object@prob <= 0 || object@prob > 1)
-      errors <- c(errors, "prob must be on the interval (0, 1]")
+  if (is_numeric_scalar(object@p)) {
+    if (object@p <= 0 || object@p > 1)
+      errors <- c(errors, "p must be on the interval (0, 1]")
   }
-  if (is_numeric_scalar(object@size)) {
-    if (object@size <= 0) {
-      errors <- c(errors, "size must be strictly positive")
+  if (is_numeric_scalar(object@n)) {
+    if (object@n <= 0) {
+      errors <- c(errors, "n must be strictly positive")
     }  
   }
   if (length(errors)==0) TRUE else errors
 }
 
 setClass("ESCNBRP", 
-         slots = c(prob="ANY", size="ANY"), 
+         slots = c(p="ANY", n="ANY"), 
          validity=.check_ESCNB, contains = "RP")
 
 #' ESC-NB Random Partition
@@ -40,11 +40,11 @@ setClass("ESCNBRP",
 #' with cluster size \eqn{x} is:
 #' \deqn{p(X = x) = \frac{\Gamma(x + r - 1)}{(x - 1)! \Gamma(r)} p^n (1 - p)^{x - 1}}{p(X = x) = (Γ(x + r - 1))/((x - 1)! Γ(r)) p^n (1 - p)^{x - 1}}
 #' for \eqn{x = 1, 2, 3, ...}, \eqn{n > 0} and \eqn{0 < p \leq 1}{0 < p <= 1}.
-#' Hyperpriors on the `prob` and `size` parameters are supported.
+#' Hyperpriors on the `p` and `n` parameters are supported.
 #' 
-#' @param prob Probability of success. Must be a numeric scalar on the unit 
+#' @param p Probability of success. Must be a numeric scalar on the unit 
 #'   interval \eqn{(0, 1]} or a [`BetaRV`] object.
-#' @param size Target for number of successful trials, or dispersion parameter 
+#' @param n Target for number of successful trials, or dispersion parameter 
 #'   (the shape parameter of the gamma mixing distribution). Must be a positive 
 #'   numeric scalar or a [`GammaRV`] object.
 #' @return The constructor `ESCNBRP` returns a `ESCNBRP` object which is a 
@@ -60,14 +60,14 @@ setClass("ESCNBRP",
 #' Statistical Association_, DOI: 10.1080/01621459.2020.1841647.
 #' 
 #' @export
-ESCNBRP <- function(prob, size) {
-  new("ESCNBRP", prob=prob, size=size)
+ESCNBRP <- function(p, n) {
+  new("ESCNBRP", p=p, n=n)
 }
 
 setMethod("format", "ESCNBRP", function(x, ...) {
-  prob <- format(x@prob, ...)
-  size <- format(x@size, ...)
-  paste0("ESCNBRP(prob=", prob, ", size=", size, ")")
+  p <- format(x@p, ...)
+  n <- format(x@n, ...)
+  paste0("ESCNBRP(p=", p, ", n=", n, ")")
 })
 
 setMethod("show", "ESCNBRP", function(object) {

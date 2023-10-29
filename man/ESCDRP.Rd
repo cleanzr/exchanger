@@ -4,27 +4,35 @@
 \alias{ESCDRP}
 \title{ESC-D Random Partition}
 \usage{
-ESCDRP(p, r, alpha)
+ESCDRP(p, n, alpha)
 }
 \arguments{
-\item{p}{Probability of success. Must be on the unit interval \eqn{(0, 1]}
-or a \code{\link{BetaRV}} object.}
+\item{p}{Probability of success. Must be a numeric scalar on the unit
+interval \eqn{(0, 1]} or a \code{\link{BetaRV}} object.}
 
-\item{r}{Target number of successes before negative binomial experiment
-is stopped. Must be strictly a positive real or a \code{\link{GammaRV}} object.}
+\item{n}{Target for number of successful trials, or dispersion parameter
+(the shape parameter of the gamma mixing distribution). Must be a positive
+numeric scalar or a \code{\link{GammaRV}} object.}
 
-\item{alpha}{TODO Concentration parameter.}
+\item{alpha}{Concentration parameter for the Dirichlet process. Must be a
+positive numeric scalar.}
 }
 \value{
 The constructor \code{ESCDRP} returns a \code{ESCDRP} object which is a
 subclass of \code{\linkS4class{RP}}.
 }
 \description{
-Represents an ESC-D (Exchangeable Sequences of Clusters-Dirichlet)
-random partition.
-}
-\details{
-TODO
+An ESC model where the cluster sizes are drawn from a distribution on the
+positive integers, which is itself drawn from a Dirichlet process with a
+shifted negative binomial base distribution with concentration parameter
+\eqn{`alpha`}.
+The parameterization of the shifted negative binomial distribution matches
+\code{\link[stats:NegBinomial]{stats::NegBinomial}}.
+For \eqn{`size` = n} and \eqn{`prob` = p}, the probability mass associated
+with cluster size \eqn{x} is:
+\deqn{p(X = x) = \frac{\Gamma(x + n - 1)}{(x - 1)! \Gamma(n)} p^n (1 - p)^{x - 1}}{p(X = x) = (Γ(x + n - 1))/((x - 1)! Γ(n)) p^n (1 - p)^{x - 1}}
+for \eqn{x = 1, 2, 3, ...}, \eqn{n > 0} and \eqn{0 < p \leq 1}{0 < p <= 1}.
+Hyperpriors on the \code{p} and \code{n} parameters are supported.
 }
 \references{
 Brenda Betancourt, Giacomo Zanella & Rebecca C. Steorts (2020): Random

@@ -217,10 +217,10 @@ public:
 
 class ESCNBClustParams : public ClustParams {
 private:
-   boost::optional<GammaRV> r_prior_;
+   boost::optional<GammaRV> n_prior_;
    boost::optional<BetaRV> p_prior_;
-   double size_;
-   double prob_;
+   double n_;
+   double p_;
 public:
    /**
     * Get the prior weight associated with an item spawning a new cluster. This is used in the CRP representation 
@@ -272,11 +272,11 @@ public:
 };
 
 class ESCDClustParams : public ClustParams {
-private:
-   boost::optional<GammaRV> r_prior_;
+protected:
+   boost::optional<GammaRV> n_prior_;
    boost::optional<BetaRV> p_prior_;
-   double size_;
-   double prob_;
+   double n_;
+   double p_;
    double alpha_;
    std::vector<double> mu_;
 public:
@@ -300,7 +300,7 @@ public:
     * Constructor from R objects
     * @param clust_params a `RP` S4 object representing the instantiated cluster parameters
     * @param clust_prior a `RP` S4 object representing the priors over the cluster parameters
-    * @return a ESCNBClustParams instance
+    * @return a ESCDClustParams instance
     */
    ESCDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior);
    
@@ -327,6 +327,49 @@ public:
     * Get the number of clustering parameters that are random (not fixed)
     */
    int num_random() const;
+};
+
+class NBDClustParams : public ESCDClustParams {
+protected:
+  double a_;
+  double q_;
+public:
+  /**
+   * Get the prior weight associated with an item spawning a new cluster. This is used in the CRP representation 
+   * of the random partition. 
+   * @param n_clusters the current number of clusters
+   * @return a positive weight (not normalized)
+   */
+  double prior_weight_new(int n_clusters) const;
+  
+  /**
+   * Get the prior weight associated with an item joining an existing cluster of a particular size. This is used in 
+   * the CRP representation of the random partition. 
+   * @param cluster_size the size of the existing cluster
+   * @return a positive weight (not normalized)
+   */
+  double prior_weight_existing(int cluster_size) const;
+  
+  /**
+   * Constructor from R objects
+   * @param clust_params a `RP` S4 object representing the instantiated cluster parameters
+   * @param clust_prior a `RP` S4 object representing the priors over the cluster parameters
+   * @return a NBDClustParams instance
+   */
+  NBDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior);
+  
+  /**
+   * Convert to an R representation
+   * @return a `RP` S4 object
+   */
+  Rcpp::S4 to_R() const;
+  
+  /**
+   * Convert to an R vector representation
+   * @param include_fixed whether to include clustering parameters that are fixed
+   * @return a named numeric vector, where the names correspond to clustering parameters
+   */
+  Rcpp::NumericVector to_R_vec(bool include_fixed=false) const;
 };
 
 /**

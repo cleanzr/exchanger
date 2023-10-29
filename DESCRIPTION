@@ -62,6 +62,7 @@ Collate:
     'ExchangERFit.R'
     'sample_ep.R'
     'GeneralizedCouponRP.R'
+    'NBDRP.R'
     'PitmanYorRP.R'
     'RcppExports.R'
     'ShiftedNegBinomRV.R'

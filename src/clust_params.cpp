@@ -36,11 +36,11 @@ double PitmanYorClustParams::prior_weight_new(int n_clusters) const {
 
 double ESCNBClustParams::prior_weight_existing(int cluster_size) const
 { 
-  return std::abs(cluster_size + size_);
+  return std::abs(cluster_size + n_);
 }
 
 double ESCNBClustParams::prior_weight_new(int n_clusters) const { 
-  return (n_clusters + 1) * size_ * std::pow(1 - prob_, size_); 
+  return (n_clusters + 1) * n_ * std::pow(1 - p_, n_); 
 }
 
 double ESCDClustParams::prior_weight_existing(int cluster_size) const
@@ -57,6 +57,22 @@ double ESCDClustParams::prior_weight_existing(int cluster_size) const
 double ESCDClustParams::prior_weight_new(int n_clusters) const { 
   return (n_clusters + 1) * mu_[0]; 
 }
+
+double NBDClustParams::prior_weight_existing(int cluster_size) const
+{ 
+  // Probability associated with the current cluster size (note mu_ is 
+  // zero-indexed)
+  double mu_current_size = mu_[cluster_size - 1];
+  // Avoid division by zero
+  double min_double = std::numeric_limits<double>::min();
+  mu_current_size = mu_current_size < min_double ? min_double : mu_current_size;
+  return (cluster_size + 1) * mu_[cluster_size] / mu_current_size;
+}
+
+double NBDClustParams::prior_weight_new(int n_clusters) const { 
+  return (1/n_clusters + 1) * (n_clusters + a_ - 1) * (1 - q_) *  mu_[0]; 
+}
+
 
 void CouponClustParams::update(Links &links) {
   // Nothing to do
@@ -154,12 +170,12 @@ void ESCNBClustParams::update(Links &links)
 
   // Update prob
   if (p_prior_.has_value()) {
-    double shape1 = n_clusters * size_ + p_prior_.value().get_shape1();
+    double shape1 = n_clusters * n_ + p_prior_.value().get_shape1();
     double shape2 = links.n_records() + p_prior_.value().get_shape2();
-    prob_ = R::rbeta(shape1, shape2);
+    p_ = R::rbeta(shape1, shape2);
   }
 
-  if (r_prior_.has_value()) {
+  if (n_prior_.has_value()) {
     // Generate v auxiliary variables
     int clust_size;
     double prob_j;
@@ -167,15 +183,15 @@ void ESCNBClustParams::update(Links &links)
     for (auto const &clust : links.inverse_index_) {
       clust_size = clust.second.size();
       for (int j = 1; j <= clust_size - 2; j++) {
-        prob_j = (size_)/(size_ + j);
+        prob_j = (n_)/(n_ + j);
         num_v_success += (R::unif_rand() < prob_j);
       }
     }
 
     // Update size
-    double shape = r_prior_.value().get_shape() + n_clusters + num_v_success;
-    double rate = r_prior_.value().get_rate() - n_clusters * std::log(prob_);
-    size_ = R::rgamma(shape, 1.0 / rate);
+    double shape = n_prior_.value().get_shape() + n_clusters + num_v_success;
+    double rate = n_prior_.value().get_rate() - n_clusters * std::log(p_);
+    n_ = R::rgamma(shape, 1.0 / rate);
   }
 }
 
@@ -200,7 +216,7 @@ void ESCDClustParams::update(Links &links)
       max_clust_size = clust_size;
   }
   
-  if (p_prior_.has_value() || r_prior_.has_value()) {
+  if (p_prior_.has_value() || n_prior_.has_value()) {
     double prod_si;  // \prod_{j}^{s-1} size^{u_{sij}} * (j - 1)^{1 - u_{sij}} / j
     int u_si;        // \sum_{j}^{s-1} u_{sij}
     double z_si;     // alpha * prob^size * (1 - prob)^{s-1} * prod_si
@@ -208,7 +224,7 @@ void ESCDClustParams::update(Links &links)
     double prob_j;   // size / (size + j - 1)
     bool v_si;       // auxiliary variable drawn from Bernoulli(prob_si)
 
-    // Store delta updates to prob_ and size_ hyperparameters
+    // Store delta updates to p_ and n_ hyperparameters
     double shape_prime = 0.0;
     double rate_prime = 0.0;
     double shape1_prime = 0.0;
@@ -220,22 +236,22 @@ void ESCDClustParams::update(Links &links)
       for (int i = 1; i <= count; i++) {
         prod_si = 1.0;
         u_si = 0;
-        if (r_prior_.has_value()) {
+        if (n_prior_.has_value()) {
           // Generate u auxiliary variables
           bool u_sij;
           for (int j = 1; j <= sz - 1; j++) {
-            prob_j = (size_)/(size_ + j - 1);
+            prob_j = (n_)/(n_ + j - 1);
             u_sij = (R::unif_rand() < prob_j);
             u_si += u_sij;
-            prod_si *= size_/j * u_sij + (1 - 1/j) * (1 - u_sij);
+            prod_si *= n_/j * u_sij + (1 - 1/j) * (1 - u_sij);
           }
         }
         // Generate v auxiliary variable
-        z_si = alpha_ * std::pow(prob_, size_) * std::pow(1 - prob_, sz - 1) * prod_si;
+        z_si = alpha_ * std::pow(p_, n_) * std::pow(1 - p_, sz - 1) * prod_si;
         prob_si = z_si / (z_si + i - 1);
         v_si = (R::unif_rand() < prob_si);
 
-        // Update prob_ and size_ hyperparameters
+        // Update p_ and n_ hyperparameters
         shape_prime += v_si * u_si;
         rate_prime += -v_si;
         shape1_prime += v_si;
@@ -243,21 +259,21 @@ void ESCDClustParams::update(Links &links)
       }
     }
     
-    rate_prime *= std::log(prob_);
-    shape1_prime *= size_;
+    rate_prime *= std::log(p_);
+    shape1_prime *= n_;
     
     // Update prob
     if (p_prior_.has_value()) {
       double shape1 = p_prior_.value().get_shape1() + shape1_prime;
       double shape2 = p_prior_.value().get_shape2() + shape2_prime;
-      prob_ = R::rbeta(shape1, shape2);
+      p_ = R::rbeta(shape1, shape2);
     }
     
     // Update size
-    if (r_prior_.has_value()) {
-      double shape = r_prior_.value().get_shape() + shape_prime;
-      double rate = r_prior_.value().get_rate() + rate_prime;
-      size_ = R::rgamma(shape, 1.0 / rate);
+    if (n_prior_.has_value()) {
+      double shape = n_prior_.value().get_shape() + shape_prime;
+      double rate = n_prior_.value().get_rate() + rate_prime;
+      n_ = R::rgamma(shape, 1.0 / rate);
     }
   }
   
@@ -280,7 +296,7 @@ void ESCDClustParams::update(Links &links)
       break; // No contribution from observations so can break now
     } else {
       // alpha times shifted negative binomial pmf
-      *c_vec_it = alpha_ * R::dnbinom(clust_size - 1, size_, prob_, 0);
+      *c_vec_it = alpha_ * R::dnbinom(clust_size - 1, n_, p_, 0);
       c_prior_sum += *c_vec_it;
     }
 
@@ -312,11 +328,11 @@ int PitmanYorClustParams::num_random() const {
 }
 
 int ESCNBClustParams::num_random() const {
-  return p_prior_.has_value() + r_prior_.has_value();
+  return p_prior_.has_value() + n_prior_.has_value();
 }
 
 int ESCDClustParams::num_random() const {
-  return p_prior_.has_value() + r_prior_.has_value();
+  return p_prior_.has_value() + n_prior_.has_value();
 }
 
 Rcpp::S4 CouponClustParams::to_R() const
@@ -344,15 +360,22 @@ Rcpp::S4 PitmanYorClustParams::to_R() const {
 
 Rcpp::S4 ESCNBClustParams::to_R() const {
   Rcpp::S4 out("ESCNBRP");
-  out.slot("size") = size_;
-  out.slot("prob") = prob_;
+  out.slot("n") = n_;
+  out.slot("p") = p_;
   return out;
 }
 
 Rcpp::S4 ESCDClustParams::to_R() const {
   Rcpp::S4 out("ESCDRP");
-  out.slot("size") = size_;
-  out.slot("prob") = prob_;
+  out.slot("n") = n_;
+  out.slot("p") = p_;
+  return out;
+}
+
+Rcpp::S4 NBDClustParams::to_R() const {
+  Rcpp::S4 out("NBDRP");
+  out.slot("n") = n_;
+  out.slot("p") = p_;
   return out;
 }
 
@@ -416,12 +439,12 @@ Rcpp::NumericVector ESCNBClustParams::to_R_vec(bool include_fixed) const
   std::vector<std::string> names;
   std::vector<double> values;
   if (p_prior_.has_value() || include_fixed) {
-    names.push_back("prob");
-    values.push_back(prob_);
+    names.push_back("p");
+    values.push_back(p_);
   }
-  if (r_prior_.has_value() || include_fixed) {
-    names.push_back("size");
-    values.push_back(size_);
+  if (n_prior_.has_value() || include_fixed) {
+    names.push_back("n");
+    values.push_back(n_);
   }
 
   Rcpp::NumericVector out(values.begin(), values.end());
@@ -435,16 +458,43 @@ Rcpp::NumericVector ESCDClustParams::to_R_vec(bool include_fixed) const
   std::vector<std::string> names;
   std::vector<double> values;
   if (p_prior_.has_value() || include_fixed) {
-    names.push_back("prob");
-    values.push_back(prob_);
+    names.push_back("p");
+    values.push_back(p_);
   }
-  if (r_prior_.has_value() || include_fixed) {
-    names.push_back("size");
-    values.push_back(size_);
+  if (n_prior_.has_value() || include_fixed) {
+    names.push_back("n");
+    values.push_back(n_);
   }
   if (include_fixed) {
     names.push_back("alpha");
     values.push_back(alpha_);
+  }
+  
+  Rcpp::NumericVector out(values.begin(), values.end());
+  Rcpp::CharacterVector out_names(names.begin(), names.end());
+  out.attr("names") = out_names;
+  return out; 
+}
+
+Rcpp::NumericVector NBDClustParams::to_R_vec(bool include_fixed) const 
+{
+  std::vector<std::string> names;
+  std::vector<double> values;
+  if (p_prior_.has_value() || include_fixed) {
+    names.push_back("p");
+    values.push_back(p_);
+  }
+  if (n_prior_.has_value() || include_fixed) {
+    names.push_back("n");
+    values.push_back(n_);
+  }
+  if (include_fixed) {
+    names.push_back("alpha");
+    values.push_back(alpha_);
+    names.push_back("a");
+    values.push_back(a_);
+    names.push_back("q");
+    values.push_back(q_);
   }
   
   Rcpp::NumericVector out(values.begin(), values.end());
@@ -502,42 +552,50 @@ GenCouponClustParams::GenCouponClustParams(const Rcpp::S4 &clust_params, const R
 ESCNBClustParams::ESCNBClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
 {
   // Read prior
-  SEXP p_SEXP = clust_prior.slot("prob");
+  SEXP p_SEXP = clust_prior.slot("p");
   if (TYPEOF(p_SEXP) == S4SXP) {
     Rcpp::S4 p_S4 = Rcpp::as<Rcpp::S4>(p_SEXP);
     p_prior_ = BetaRV(p_S4);
   }
 
-  SEXP r_SEXP = clust_prior.slot("size");
+  SEXP r_SEXP = clust_prior.slot("n");
   if (TYPEOF(r_SEXP) == S4SXP) {
     Rcpp::S4 r_S4 = Rcpp::as<Rcpp::S4>(r_SEXP);
-    r_prior_ = GammaRV(r_S4);
+    n_prior_ = GammaRV(r_S4);
   }
 
   // Read parameter values
-  prob_ = clust_params.slot("prob");
-  size_ = clust_params.slot("size");
+  p_ = clust_params.slot("p");
+  n_ = clust_params.slot("n");
 }
 
 ESCDClustParams::ESCDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
 {
   // Read prior
-  SEXP p_SEXP = clust_prior.slot("prob");
+  SEXP p_SEXP = clust_prior.slot("p");
   if (TYPEOF(p_SEXP) == S4SXP) {
     Rcpp::S4 p_S4 = Rcpp::as<Rcpp::S4>(p_SEXP);
     p_prior_ = BetaRV(p_S4);
   }
   
-  SEXP r_SEXP = clust_prior.slot("size");
+  SEXP r_SEXP = clust_prior.slot("n");
   if (TYPEOF(r_SEXP) == S4SXP) {
     Rcpp::S4 r_S4 = Rcpp::as<Rcpp::S4>(r_SEXP);
-    r_prior_ = GammaRV(r_S4);
+    n_prior_ = GammaRV(r_S4);
   }
   
   // Read parameter values
-  prob_ = clust_params.slot("prob");
-  size_ = clust_params.slot("size");
+  p_ = clust_params.slot("p");
+  n_ = clust_params.slot("n");
   alpha_ = clust_params.slot("alpha");
+}
+
+NBDClustParams::NBDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior)
+  : ESCDClustParams::ESCDClustParams(clust_params, clust_prior)
+{
+  // Read parameter values
+  a_ = clust_params.slot("a");
+  q_ = clust_params.slot("q");
 }
 
 std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
@@ -549,6 +607,8 @@ std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, con
     clust_params_.reset(new ESCNBClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("ESCDRP")) {
     clust_params_.reset(new ESCDClustParams(clust_params, clust_prior));
+  } else if (clust_prior.is("NBDRP")) {
+    clust_params_.reset(new NBDClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("GeneralizedCouponRP")) {
     // Sampling implementation differs depending on whether kappa is Inf
     SEXP kappa_SEXP = clust_prior.slot("kappa");
