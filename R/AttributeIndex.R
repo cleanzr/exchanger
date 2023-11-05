@@ -1,8 +1,6 @@
 #' @include utils.R
 NULL
 
-.check_AttributeIndex <- 
-
 setClass("AttributeIndex", 
          slots = c(
            domain = "character", 
@@ -17,7 +15,7 @@ setClass("AttributeIndex",
             if (!is.vector(object@probs)) {
               errors <- c(errors, "probs must be a vector")
             }
-            if (abs(sum(object@probs) - 1.) > .Machine$double.eps) {
+            if (!approx_equal(sum(object@probs), 1.)) {
               errors <- c(errors, "probs must be normalized")
             }
             if (!is.vector(object@domain)) {
