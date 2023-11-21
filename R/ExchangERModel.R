@@ -375,7 +375,7 @@ buildAttributeIndices <- function(data, attr_params) {
     if (inherits(a, "CategoricalAttribute")) {
       attr_indices[[i]] <- AttributeIndex(data[[attr_name]], NULL, a@exclude_entity_value)
     } else {
-      attr_indices[[i]] <- AttributeIndex(data[[attr_name]], a@dist_fn, a@exclude_entity_value)
+      attr_indices[[i]] <- AttributeIndex(data[[attr_name]], a@dist_fn, a@exclude_entity_value, a@adjust_dist)
     }
   }
   

@@ -10,6 +10,7 @@ Attribute(
   distort_prob_prior,
   distort_dist_prior = DirichletProcess(Inf),
   exclude_entity_value = TRUE,
+  adjust_dist = FALSE,
   entity_dist_prior = NULL
 )
 
@@ -52,6 +53,11 @@ value \eqn{y} should be excluded from the support of the distortion
 distribution for record value \eqn{x}. If TRUE, the distance returned
 by \eqn{\mathrm{dist_fn}(y,y)}{dist_fn(y,y)} is replaced by \code{Inf} for all
 values \eqn{y}. Defaults to TRUE.}
+
+\item{adjust_dist}{A boolean specifying whether to adjust the distance
+function using the empirical probabilities. If TRUE, the log empirical
+probability associated with \eqn{x} is subtracted from
+\eqn{\mathrm{dist_fn}(y,x)}{dist_fn(y,x)}. Defaults to FALSE.}
 
 \item{entity_dist_prior}{A \code{\link{DirichletRV}} object, numeric vector or
 NULL. This parameter specifies the prior on the entity attribute

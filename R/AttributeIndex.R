@@ -58,6 +58,8 @@ setClass("AttributeIndex",
 #' @param exclude_entity_value A boolean specifying whether the entity 
 #'   value \eqn{y} should be excluded from the support of the distortion 
 #'   distribution for record value \eqn{x}.
+#' @param adjust_dist Whether to adjust `dist_fn(y, x)` by subtracting 
+#'   the log relative frequency of x in `values`.
 #' @return An `AttributeIndex` object.
 #' 
 #' @note This function supports parallel evaluation via the `future` package. 
@@ -65,7 +67,7 @@ setClass("AttributeIndex",
 #' 
 #' @keywords internal
 #' @export
-AttributeIndex <- function(values, dist_fn, exclude_entity_value) {
+AttributeIndex <- function(values, dist_fn, exclude_entity_value, adjust_dist) {
   if (!is.null(dim(values))) stop("values must be a 1D array")
   if (!is.factor(values)) stop("values must be a factor")
   # TODO: check for duplicate levels?
@@ -81,7 +83,7 @@ AttributeIndex <- function(values, dist_fn, exclude_entity_value) {
     new("AttributeIndex", domain=domain, probs=probs, close_values=list(), 
         max_exp_factor=numeric(), n_missing=n_missing)
   } else {
-    res <- compute_close_values(domain, probs, dist_fn, !exclude_entity_value)
+    res <- compute_close_values(domain, probs, dist_fn, !exclude_entity_value, adjust_dist)
     new("AttributeIndex", domain=domain, probs=probs, close_values=res$close_values, 
         max_exp_factor=res$max_exp_factor, n_missing=n_missing)
   }
@@ -105,6 +107,8 @@ is.AttributeIndex <- function(x) inherits(x, "AttributeIndex")
 #' @param dist_fn A vectorized distance function.
 #' @param include_self Whether to include the value itself in the list of 
 #'   close values.
+#' @param adjust_dist Whether to adjust `dist_fn(y, x)` by subtracting 
+#'   the log probability mass associated with x.
 #' @return A list containing two entries:
 #'   - `close_values`: a list of close values for each value in `domain`
 #'   - `max_exp_factor`: a vector containing max_x exp(-dist_fn(y, x)) for each 
@@ -114,7 +118,7 @@ is.AttributeIndex <- function(x) inherits(x, "AttributeIndex")
 #' 
 #' @keywords internal
 #' @noRd
-compute_close_values <- function(domain, probs, dist_fn, include_self) {
+compute_close_values <- function(domain, probs, dist_fn, include_self, adjust_dist) {
   close_values <- future_lapply(seq_along(domain), function(i) {
     dists <- dist_fn(domain[i], domain)
     if (!include_self) { 
@@ -123,8 +127,10 @@ compute_close_values <- function(domain, probs, dist_fn, include_self) {
     min_dist <- min(dists)
     finite_dist_val_ids <- which(is.finite(dists))
     dists <- dists[finite_dist_val_ids]
+    if (adjust_dist) {
+      dists <- dists - log(probs[finite_dist_val_ids])
+    }
     max_dist <- if (length(dists)) max(dists) else NA
-    #distort_probs <- probs[finite_dist_val_ids] * exp(-dists)
     distort_probs <- exp(-dists)
     distort_probs <- distort_probs / sum(distort_probs)
     return(list(valIds=finite_dist_val_ids, probs=distort_probs, min_dist=min_dist, max_dist=max_dist))

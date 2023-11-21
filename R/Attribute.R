@@ -5,6 +5,7 @@ setClass("Attribute", slots=c(dist_fn="function",
                               distort_prob_prior="ANY",
                               distort_dist_prior="DirichletProcess",
                               exclude_entity_value="logical",
+                              adjust_dist="logical",
                               entity_dist_prior="ANY"), 
          validity = function(object) {
            errors <- character()
@@ -17,8 +18,11 @@ setClass("Attribute", slots=c(dist_fn="function",
                }
              }
            }
-           if (length(object@exclude_entity_value) != 1) {
+           if (length(object@exclude_entity_value) != 1 || !is.logical(object@exclude_entity_value)) {
              errors <- c(errors, "`exclude_entity_value` must be a logical vector of length 1")
+           }
+           if (length(object@adjust_dist) != 1 || !is.logical(object@adjust_dist)) {
+             errors <- c(errors, "`adjust_dist` must be a logical vector of length 1")
            }
            if (!(is.DirichletRV(object@entity_dist_prior) || is.null(object@entity_dist_prior) || is.numeric(object@entity_dist_prior))) {
              errors <- c(errors, "`entity_dist_prior` must be a DirichletRV, numeric vector or NULL")
@@ -87,6 +91,10 @@ setClass("Attribute", slots=c(dist_fn="function",
 #'   distribution for record value \eqn{x}. If TRUE, the distance returned 
 #'   by \eqn{\mathrm{dist_fn}(y,y)}{dist_fn(y,y)} is replaced by `Inf` for all 
 #'   values \eqn{y}. Defaults to TRUE.
+#' @param adjust_dist A boolean specifying whether to adjust the distance 
+#'   function using the empirical probabilities. If TRUE, the log empirical 
+#'   probability associated with \eqn{x} is subtracted from 
+#'   \eqn{\mathrm{dist_fn}(y,x)}{dist_fn(y,x)}. Defaults to FALSE.
 #' @param entity_dist_prior A [`DirichletRV`] object, numeric vector or 
 #'   NULL. This parameter specifies the prior on the entity attribute 
 #'   distribution. 
@@ -111,10 +119,11 @@ setClass("Attribute", slots=c(dist_fn="function",
 #' @export
 Attribute <- function(dist_fn, distort_prob_prior, 
                       distort_dist_prior=DirichletProcess(Inf), 
-                      exclude_entity_value=TRUE, entity_dist_prior=NULL) {
+                      exclude_entity_value=TRUE, adjust_dist=FALSE, 
+                      entity_dist_prior=NULL) {
   new("Attribute", dist_fn=dist_fn, distort_prob_prior=distort_prob_prior,
       distort_dist_prior=distort_dist_prior, 
-      exclude_entity_value=exclude_entity_value,
+      exclude_entity_value=exclude_entity_value, adjust_dist=adjust_dist,
       entity_dist_prior=entity_dist_prior)
 }
 
@@ -124,6 +133,7 @@ setMethod("show", "Attribute", function(object) {
       "  Distort. distn. prior: ", format(object@distort_dist_prior), "\n",
       "  Entity distn. prior:   ", format(object@entity_dist_prior), "\n",
       "  Exclude entity value:  ", format(object@exclude_entity_value), "\n",
+      "  Adjust distance fn:  ", format(object@adjust_dist), "\n",
       sep="")
 })
 
@@ -145,7 +155,8 @@ CategoricalAttribute <- function(distort_prob_prior,
       distort_prob_prior=distort_prob_prior, 
       distort_dist_prior=distort_dist_prior, 
       exclude_entity_value=exclude_entity_value,
-      entity_dist_prior=entity_dist_prior)
+      entity_dist_prior=entity_dist_prior,
+      adjust_dist=TRUE)
 }
 
 setMethod("show", "CategoricalAttribute", function(object) {
@@ -154,5 +165,6 @@ setMethod("show", "CategoricalAttribute", function(object) {
       "  Distort. distn. prior: ", format(object@distort_dist_prior), "\n",
       "  Entity distn. prior:   ", format(object@entity_dist_prior), "\n",
       "  Exclude entity value:  ", format(object@exclude_entity_value), "\n",
+      "  Adjust distance fn:  ", format(object@adjust_dist), "\n",
       sep="")
 })

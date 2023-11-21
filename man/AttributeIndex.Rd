@@ -4,7 +4,7 @@
 \alias{AttributeIndex}
 \title{Attribute Index}
 \usage{
-AttributeIndex(values, dist_fn, exclude_entity_value)
+AttributeIndex(values, dist_fn, exclude_entity_value, adjust_dist)
 }
 \arguments{
 \item{values}{A vector of attribute values (e.g. a column from the source
@@ -16,6 +16,9 @@ distance function).}
 \item{exclude_entity_value}{A boolean specifying whether the entity
 value \eqn{y} should be excluded from the support of the distortion
 distribution for record value \eqn{x}.}
+
+\item{adjust_dist}{Whether to adjust \code{dist_fn(y, x)} by subtracting
+the log relative frequency of x in \code{values}.}
 }
 \value{
 An \code{AttributeIndex} object.
