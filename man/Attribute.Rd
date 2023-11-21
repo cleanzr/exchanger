@@ -45,19 +45,19 @@ concentration parameter yields a more concentrated distribution, which
 may be useful for large attribute domains. If the concentration parameter
 is set to \code{Inf}, the Dirichlet Process collapses to the base distribution
 (i.e. the prior is a point mass on the base distribution).
-The base distribution is set to \eqn{p(x|y) \propto \exp(-\mathrm{dist_fn}(y,x))}{p(x|y) ∝ exp(-dist_fn(y,x))}. 
+The base distribution is set to \eqn{p(x|y) \propto \exp(-\mathrm{dist\_fn}(y,x))}{p(x|y) ∝ exp(-dist_fn(y,x))}. 
 Defaults to \code{DirichletProcess(Inf)}.}
 
 \item{exclude_entity_value}{A boolean specifying whether the entity
 value \eqn{y} should be excluded from the support of the distortion
 distribution for record value \eqn{x}. If TRUE, the distance returned
-by \eqn{\mathrm{dist_fn}(y,y)}{dist_fn(y,y)} is replaced by \code{Inf} for all
+by \eqn{\mathrm{dist\_fn}(y,y)}{dist_fn(y,y)} is replaced by \code{Inf} for all
 values \eqn{y}. Defaults to TRUE.}
 
 \item{adjust_dist}{A boolean specifying whether to adjust the distance
 function using the empirical probabilities. If TRUE, the log empirical
 probability associated with \eqn{x} is subtracted from
-\eqn{\mathrm{dist_fn}(y,x)}{dist_fn(y,x)}. Defaults to FALSE.}
+\eqn{\mathrm{dist\_fn}(y,x)}{dist_fn(y,x)}. Defaults to FALSE.}
 
 \item{entity_dist_prior}{A \code{\link{DirichletRV}} object, numeric vector or
 NULL. This parameter specifies the prior on the entity attribute
