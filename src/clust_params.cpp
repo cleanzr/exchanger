@@ -369,6 +369,7 @@ Rcpp::S4 ESCDClustParams::to_R() const {
   Rcpp::S4 out("ESCDRP");
   out.slot("n") = n_;
   out.slot("p") = p_;
+  out.slot("alpha") = alpha_;
   return out;
 }
 
@@ -376,6 +377,9 @@ Rcpp::S4 NBDClustParams::to_R() const {
   Rcpp::S4 out("NBDRP");
   out.slot("n") = n_;
   out.slot("p") = p_;
+  out.slot("alpha") = alpha_;
+  out.slot("a") = a_;
+  out.slot("q") = q_;
   return out;
 }
 
