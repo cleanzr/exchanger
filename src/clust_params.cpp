@@ -58,6 +58,24 @@ double ESCDClustParams::prior_weight_new(int n_clusters) const {
   return (n_clusters + 1) * mu_[0]; 
 }
 
+double BoundedNBDClustParams::prior_weight_existing(int cluster_size) const
+{ 
+  if (cluster_size >= mu_.size()) {
+    return 0.0;
+  }
+  // Probability associated with the current cluster size (note index 0 
+  // corresponds to cluster size 1)
+  double mu_current_size = mu_[cluster_size - 1];
+  // Avoid division by zero
+  double min_double = std::numeric_limits<double>::min();
+  mu_current_size = mu_current_size < min_double ? min_double : mu_current_size;
+  return (cluster_size + 1) * mu_[cluster_size] / mu_current_size;
+}
+
+double BoundedNBDClustParams::prior_weight_new(int n_clusters) const { 
+  return (1/n_clusters + 1) * (n_clusters + a_ - 1) * (1 - q_) *  mu_[0]; 
+}
+
 double NBDClustParams::prior_weight_existing(int cluster_size) const
 { 
   // Probability associated with the current cluster size (note mu_ is 
@@ -315,6 +333,50 @@ void ESCDClustParams::update(Links &links)
   mu_ = rdirichlet(c_vec.begin(), c_vec_it);
 }
 
+void BoundedNBDClustParams::update(Links &links)
+{ 
+  auto n_records = links.n_records();
+  
+  // Frequency of each cluster size
+  std::map<int, int> clust_size_freq;
+  int clust_size;
+  int max_clust_size = n_ + 1;
+  for (auto const &clust : links.inverse_index_) {
+    clust_size = clust.second.size();
+    auto got = clust_size_freq.find(clust_size);
+    if (got != clust_size_freq.end()) {
+      got->second += 1;
+    } else {
+      clust_size_freq.insert(std::make_pair(clust_size, 1));
+    }
+  }
+  
+  // Update mu
+  // Vector of concentration parameters for each possible cluster size. 
+  std::vector<double> c_vec(max_clust_size);
+  double min_float = std::numeric_limits<double>::min();
+  double prev_c = std::numeric_limits<double>::max();  // previous concentration parameter value
+  auto c_vec_it = c_vec.begin();
+  for (; c_vec_it != c_vec.end(); ++c_vec_it) {
+    clust_size = std::distance(c_vec.begin(), c_vec_it) + 1;
+    
+    // Contribution from prior
+    if (clust_size <= max_clust_size) {
+      // alpha times shifted binomial pmf
+      *c_vec_it = alpha_ * R::choose(n_, clust_size - 1) * R::beta(clust_size - 1 + shape1_, n_ - clust_size + 1 + shape2_) / R::beta(shape1_, shape2_);
+    } else {
+      // Something's gone wrong
+    }
+    
+    // Contribution from observations
+    auto got = clust_size_freq.find(clust_size);
+    if (got != clust_size_freq.end()) {
+      *c_vec_it += got->second;
+    }
+  }
+  mu_ = rdirichlet(c_vec.begin(), c_vec_it);
+}
+
 int CouponClustParams::num_random() const {
   return 0;
 }
@@ -333,6 +395,10 @@ int ESCNBClustParams::num_random() const {
 
 int ESCDClustParams::num_random() const {
   return p_prior_.has_value() + n_prior_.has_value();
+}
+
+int BoundedNBDClustParams::num_random() const {
+  return 0;
 }
 
 Rcpp::S4 CouponClustParams::to_R() const
@@ -370,6 +436,17 @@ Rcpp::S4 ESCDClustParams::to_R() const {
   out.slot("n") = n_;
   out.slot("p") = p_;
   out.slot("alpha") = alpha_;
+  return out;
+}
+
+Rcpp::S4 BoundedNBDClustParams::to_R() const {
+  Rcpp::S4 out("BoundedNBDRP");
+  out.slot("n") = n_;
+  out.slot("shape1") = shape1_;
+  out.slot("shape2") = shape2_;
+  out.slot("alpha") = alpha_;
+  out.slot("a") = a_;
+  out.slot("q") = q_;
   return out;
 }
 
@@ -472,6 +549,31 @@ Rcpp::NumericVector ESCDClustParams::to_R_vec(bool include_fixed) const
   if (include_fixed) {
     names.push_back("alpha");
     values.push_back(alpha_);
+  }
+  
+  Rcpp::NumericVector out(values.begin(), values.end());
+  Rcpp::CharacterVector out_names(names.begin(), names.end());
+  out.attr("names") = out_names;
+  return out; 
+}
+
+Rcpp::NumericVector BoundedNBDClustParams::to_R_vec(bool include_fixed) const 
+{
+  std::vector<std::string> names;
+  std::vector<double> values;
+  if (include_fixed) {
+    names.push_back("shape1");
+    values.push_back(shape1_);
+    names.push_back("shape2");
+    values.push_back(shape2_);
+    names.push_back("n");
+    values.push_back(n_);
+    names.push_back("alpha");
+    values.push_back(alpha_);
+    names.push_back("a");
+    values.push_back(a_);
+    names.push_back("q");
+    values.push_back(q_);
   }
   
   Rcpp::NumericVector out(values.begin(), values.end());
@@ -594,6 +696,17 @@ ESCDClustParams::ESCDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &c
   alpha_ = clust_params.slot("alpha");
 }
 
+BoundedNBDClustParams::BoundedNBDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior) 
+{
+  // Read parameter values
+  shape1_ = clust_params.slot("shape1");
+  shape2_ = clust_params.slot("shape2");
+  n_ = clust_params.slot("n");
+  alpha_ = clust_params.slot("alpha");
+  a_ = clust_params.slot("a");
+  q_ = clust_params.slot("q");
+}
+
 NBDClustParams::NBDClustParams(const Rcpp::S4 &clust_params, const Rcpp::S4 &clust_prior)
   : ESCDClustParams::ESCDClustParams(clust_params, clust_prior)
 {
@@ -613,6 +726,8 @@ std::shared_ptr<ClustParams> read_clust_params(const Rcpp::S4 &clust_params, con
     clust_params_.reset(new ESCDClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("NBDRP")) {
     clust_params_.reset(new NBDClustParams(clust_params, clust_prior));
+  } else if (clust_prior.is("BoundedNBDRP")) {
+    clust_params_.reset(new BoundedNBDClustParams(clust_params, clust_prior));
   } else if (clust_prior.is("GeneralizedCouponRP")) {
     // Sampling implementation differs depending on whether kappa is Inf
     SEXP kappa_SEXP = clust_prior.slot("kappa");
